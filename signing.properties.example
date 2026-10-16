@@ -1,0 +1,15 @@
+# 复制这个文件为 signing.properties，并填入你自己的真实值。
+#
+# signing.properties 已经在 .gitignore 里 —— 它**不会**被提交，也绝不能提交：
+# 密钥库 + 密码一旦推到公开仓库，等于把发布身份交出去了（只能轮换密钥，代价很大）。
+#
+# 生成密钥库（在项目根目录执行一次）：
+#   keytool -genkeypair -v -keystore adskip-release.jks -alias adskip \
+#           -keyalg RSA -keysize 4096 -validity 10000
+# 然后把下面四项填好即可。
+
+# 密钥库文件：相对项目根的路径，或绝对路径
+storeFile=adskip-release.jks
+storePassword=在这里填你的密钥库密码
+keyAlias=adskip
+keyPassword=在这里填你的密钥密码

@@ -1,0 +1,21 @@
+Taps the "Skip / Close" button on other apps' splash ads for you. No root — it uses Android's accessibility service only.
+
+What it does
+Taps the skip button once, when a splash ad appears. That button is required to exist by regulation; this tool just performs the one tap for you.
+
+What it does NOT do
+· Does not modify other apps, inject code, or hook any process
+· Does not crack, proxy, or man-in-the-middle any traffic
+· Requests NO network permission — so it is technically incapable of uploading anything
+· Never touches payment, banking, or government apps: for those it does not even read the screen
+
+Accuracy
+135 unit tests. Verified on 15 real apps. On-device stats record whether each encountered ad was actually skipped; the data never leaves the device.
+
+Known limitations
+· Shake-triggered ads (accelerometer) cannot be intercepted at app level
+· Fully custom-drawn skip buttons with no node info and no fixed position
+· If the ad's landing page opens inside the same app, this version cannot yet distinguish it from a successful skip
+
+Open source
+GPL-3.0. Source code and the development log (including rejected approaches and why) are in the repository.
