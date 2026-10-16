@@ -1,5 +1,26 @@
 # 下一步 / 交接文档
 
+## 〇、此时此刻的待办（2026-10-17 凌晨 —— 交接给下一个会话或下一次的我）
+
+**只差两件，而且都只能由人来点** ✗ —— 原因已实测：协作会话的 shell 访问不了 GitHub（沙箱 TLS 坏掉，
+`git push` 直接报 `schannel: AcquireCredentialsHandle failed: SEC_E_NO_CREDENTIALS` ✗）。
+
+1. **`git push`** —— 本地领先远端 2 条提交（README 截图嵌入那条 + 前一条）
+2. **发布 GitHub Release** → https://github.com/ccttrr123/adskip/releases/new
+   - 标签选 `v0.1.0` ✓ 标题 `v0.1.0` ✓ **不要勾"预发行版"** ✓
+   - 说明：抄 `fastlane/metadata/android/zh-CN/changelogs/1.txt`，或直接用 `docs/fdroid-submission.md` 里那份
+   - 附件拖 `app/build/outputs/apk/release/app-release.apk`
+     （4,727,553 字节；SHA256 `3074CFF1991978FBCB5C6AA05817E91BFF6B4DC3612CA4BFA06E22DFB685951B`）
+
+**已完成、不要再做** ✓：签名 release 构建打通 ✓（`rootProject.file` 那处修复别回退 ✗）、
+F-Droid 材料与截图齐备 ✓、README 状态与截图更新 ✓、仓库已公开且 tag `v0.1.0` 已推送 ✓。
+
+**下一个会话的上手顺序**：本节 → 第四节（规矩）→ `docs/review-notes.md`（协作与复核记录，含**被否掉的方案**）
+→ `docs/fdroid-submission.md`（F-Droid 提交材料）。**动代码前先读这几份** ✓ 它们就是压缩掉的那些上下文 ✓。
+
+**还剩的开放项**（不急）：支付宝「支付环境有风险」提示的 A-B-A 复测（需在支付/收付款页面触发时做 ✗）、
+真实样本累积（爱奇艺的"无法确认"要看更多日志 ✗）。
+
 > 写这份文档的原因：对话上下文是有限的工作记忆，**而项目文件是持久的**。
 > 新开一个会话时，先读这份文档 + `README.md` + 跑一遍测试，就能接上进度，
 > 不需要把之前的对话重述一遍。
