@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 深色底上要更亮才看得见（浅色的 #331A1C1E 在深色卡片上等于没有） -->
+    <color name="stats_divider">#40FFFFFF</color>
+</resources>

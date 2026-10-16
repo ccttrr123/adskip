@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="ic_launcher_background">#1F2933</color>
+
+    <!--
+        统计表的分隔线（表头下、合计上）。
+        刻意不用 ?attr/colorOutlineVariant：实测它在这个主题下解析成 0，线会看不见。
+    -->
+    <color name="stats_divider">#331A1C1E</color>
+</resources>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 夜间模式的中性深色（不带紫调），与日间版本一一对应 -->
+    <style name="Theme.AdSkip" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorSurface">#121316</item>
+        <item name="colorSurfaceContainerLowest">#0D0E11</item>
+        <item name="colorSurfaceContainerLow">#1A1C1F</item>
+        <item name="colorSurfaceContainer">#1E2023</item>
+        <item name="colorSurfaceContainerHigh">#24262A</item>
+        <item name="colorOnSurface">#E3E2E6</item>
+        <item name="colorOnSurfaceVariant">#C4C6CA</item>
+        <item name="android:windowBackground">#121316</item>
+        <item name="android:statusBarColor">#121316</item>
+        <item name="android:navigationBarColor">#121316</item>
+    </style>
+</resources>

@@ -1,0 +1,354 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    外层必须是 NestedScrollView，不能是普通 ScrollView。
+    普通 ScrollView 不支持嵌套滚动协议，会把内层（日志区）的拖拽事件抢走，
+    表现就是"日志区滚不动"。
+-->
+
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+<androidx.core.widget.NestedScrollView
+    android:id="@+id/mainScroll"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    tools:ignore="HardcodedText">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="12dp">
+
+        <!-- ============ 状态 ============ -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="1dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:id="@+id/statusTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    tools:text="服务未开启" />
+
+                <TextView
+                    android:id="@+id/statusDetail"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:textSize="13sp"
+                    tools:text="开启后才会开始工作" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/openSettingsButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:text="@string/open_settings" />
+
+                <TextView
+                    android:id="@+id/hintText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="@string/hint_body"
+                    android:textSize="12sp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/copyAdbButton"
+                    style="?attr/materialButtonOutlinedStyle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/copy_adb" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- ============ 统计 ============ -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="1dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/section_stats"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/copyStatsButton"
+                        style="?attr/materialButtonOutlinedStyle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/copy_stats" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/resetStatsButton"
+                        style="?attr/materialButtonOutlinedStyle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp"
+                        android:text="@string/reset_stats" />
+                </LinearLayout>
+
+                <!--
+                    统计刻意**不用**单个等宽 TextView：monospace 字体不含中文字形，
+                    中文会回退到比例字体，"中文=2 个拉丁字符宽"的假设就不成立了 ——
+                    于是中英混排的列怎么补空格都对不齐（这是换掉它的唯一原因）。
+                    改成"每列一个 View + layout_weight"，列边界由布局算出来，与字体无关。
+                -->
+                <LinearLayout
+                    android:id="@+id/statsTable"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:orientation="vertical" />
+
+                <TextView
+                    android:id="@+id/statsEmptyText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/stats_empty"
+                    android:textSize="12sp"
+                    android:visibility="gone"
+                    tools:visibility="visible" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- ============ 规则库（可折叠） ============ -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="1dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/rulesTitle"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/section_rules"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/toggleRulesButton"
+                        style="?attr/materialButtonOutlinedStyle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/expand" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/rulesHint"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:alpha="0.6"
+                    android:text="@string/rules_hint"
+                    android:textSize="11sp"
+                    android:visibility="gone"
+                    tools:visibility="visible" />
+
+                <LinearLayout
+                    android:id="@+id/rulesContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:orientation="vertical"
+                    android:visibility="gone"
+                    tools:visibility="visible" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="1dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:text="@string/section_theme"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <!--
+                    刻意**不用** MaterialButtonToggleGroup：它会把三个按钮连成
+                    "一整条带外框的分段控件"，与其它卡片里各自独立的圆角描边按钮不一致。
+                    这里用三个独立按钮 + 代码里控制互斥，外观就和「复制统计」一样。
+                -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/themeFollow"
+                        style="?attr/materialButtonOutlinedStyle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:maxLines="1"
+                        android:text="@string/theme_follow" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/themeLight"
+                        style="?attr/materialButtonOutlinedStyle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:maxLines="1"
+                        android:layout_marginStart="8dp"
+                        android:text="@string/theme_light" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/themeDark"
+                        style="?attr/materialButtonOutlinedStyle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:maxLines="1"
+                        android:layout_marginStart="8dp"
+                        android:text="@string/theme_dark" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- ============ 调试日志（限高、内部滚动） ============ -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="12dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="1dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/section_log"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+                    <!-- 顺序与样式刻意与统计卡一致：先"复制"，再"清空" -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/copyLogButton"
+                        style="?attr/materialButtonOutlinedStyle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/copy_log" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/clearLogButton"
+                        style="?attr/materialButtonOutlinedStyle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp"
+                        android:text="@string/clear_log" />
+                </LinearLayout>
+
+                <!--
+                    日志限高 + 内部滚动：以前它跟着内容无限变长，一旦刷起来
+                    整个页面会被日志占满，上面的状态和统计都得翻很久才看得到。
+                -->
+                
+<androidx.core.widget.NestedScrollView
+                    android:id="@+id/logScroll"
+                    android:layout_width="match_parent"
+                    android:layout_height="240dp"
+                    android:layout_marginTop="8dp"
+                    android:background="?attr/colorSurfaceContainerLow"
+                    android:fillViewport="true">
+
+                    <TextView
+                        android:id="@+id/logText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="monospace"
+                        android:padding="6dp"
+                        android:textSize="11sp"
+                        tools:text="(空)" />
+                </androidx.core.widget.NestedScrollView>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+    </LinearLayout>
+
+</androidx.core.widget.NestedScrollView>
+
+    <!-- 顶部渐隐：内容滚到状态栏下方时柔和淡出，而不是被一条背景色生硬遮住 -->
+    <View
+        android:id="@+id/topFade"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_gravity="top"
+        android:background="@drawable/top_fade"
+        android:clickable="false"
+        android:focusable="false" />
+</FrameLayout>

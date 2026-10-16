@@ -1,0 +1,25 @@
+# --- 构建产物 ---
+build/
+.gradle/
+*.apk
+*.aar
+*.ap_
+local.properties
+
+# --- 本机工具链（体积大，绝不入库）---
+_tools/
+.gradle-home/
+.android-sdk/
+.kotlin/
+
+# --- IDE ---
+.idea/
+*.iml
+.DS_Store
+captures/
+
+# --- 签名与凭证（绝不入库；一旦推上去就撤不回来）---
+*.jks
+*.keystore
+signing.properties
+key.properties

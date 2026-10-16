@@ -1,0 +1,44 @@
+{
+  "version": 2,
+  "rules": [
+    { "pkg": "com.sina.weibo", "name": "微博", "strategies": [{ "type": "node_text" }], "abortIf": [{ "type": "has_edittext" }] },
+    { "pkg": "com.zhihu.android", "name": "知乎", "strategies": [{ "type": "node_text" }], "abortIf": [{ "type": "has_edittext" }] },
+    { "pkg": "com.baidu.tieba", "name": "百度贴吧", "strategies": [{ "type": "node_text" }], "abortIf": [{ "type": "has_edittext" }] },
+    { "pkg": "tv.danmaku.bili", "name": "哔哩哔哩", "strategies": [{ "type": "node_text" }], "abortIf": [{ "type": "has_edittext" }] },
+    { "pkg": "com.tencent.weread", "name": "微信读书", "strategies": [{ "type": "node_text" }], "abortIf": [{ "type": "has_edittext" }] },
+
+    { "pkg": "com.taobao.idlefish", "name": "闲鱼", "strategies": [{ "type": "node_text" }], "abortIf": [{ "type": "has_edittext" }] },
+    { "pkg": "com.cainiao.wireless", "name": "菜鸟", "strategies": [{ "type": "node_text" }], "abortIf": [{ "type": "has_edittext" }] },
+    { "pkg": "com.jingdong.app.mall", "name": "京东", "strategies": [{ "type": "node_text" }], "abortIf": [{ "type": "has_edittext" }] },
+    { "pkg": "com.mfcloudcalculate.networkdisk", "name": "123云盘", "strategies": [{ "type": "node_text" }], "abortIf": [{ "type": "has_edittext" }] },
+    { "pkg": "com.netease.cloudmusic", "name": "网易云音乐", "strategies": [{ "type": "node_text" }], "abortIf": [{ "type": "has_edittext" }] },
+    { "pkg": "com.tencent.qqlive", "name": "腾讯视频", "strategies": [{ "type": "node_text" }], "abortIf": [{ "type": "has_edittext" }] },
+    { "pkg": "com.qiyi.video", "name": "爱奇艺", "evidence": ["fullscreen_media", "activity_hint"], "activityHints": ["Splash", "Ad", "Welcome", "Loading", "Launch"], "nodeBounds": [900, 60, 1176, 300], "strategies": [{ "type": "node_text", "patterns": ["关闭", "跳过", "skip"] }, { "type": "tap_ratio", "x": 0.83, "y": 0.035 }], "abortIf": [{ "type": "has_edittext" }] },
+    { "pkg": "com.tencent.apps.valorant", "name": "掌上无畏契约", "strategies": [{ "type": "node_text" }], "abortIf": [{ "type": "has_edittext" }] },
+    { "pkg": "cn.kaiheila", "name": "KOOK", "strategies": [{ "type": "node_text" }], "abortIf": [{ "type": "has_edittext" }] },
+    { "pkg": "cn.com.yunma.school.app", "name": "易校园", "strategies": [{ "type": "node_text" }], "abortIf": [{ "type": "has_edittext" }] },
+    { "pkg": "com.yunzhi.tiyu", "name": "云运动", "strategies": [{ "type": "node_text" }], "abortIf": [{ "type": "has_edittext" }] },
+    { "pkg": "com.zzw.october", "name": "志愿汇", "windowMs": 8000, "activityHints": ["LaunchActivity"], "evidence": ["fullscreen_media", "activity_hint"], "strategies": [{ "type": "node_text" }, { "type": "tap_ratio", "x": 0.908, "y": 0.071 }], "abortIf": [{ "type": "has_edittext" }] },
+    { "pkg": "com.mihoyo.hyperion", "name": "米游社", "strategies": [{ "type": "node_text" }], "abortIf": [{ "type": "has_edittext" }] },
+    { "pkg": "com.chaoxing.mobile", "name": "学习通", "strategies": [{ "type": "node_text" }], "abortIf": [{ "type": "has_edittext" }] },
+
+    {
+      "pkg": "com.example.demo",
+      "name": "示例：完整字段（默认禁用）",
+      "enabled": false,
+      "windowMs": 5000,
+      "activityHints": ["SplashActivity", "WelcomeActivity"],
+      "evidence": ["countdown", "activity_hint", "fullscreen_media"],
+      "skipRegion": "full",
+      "strategies": [
+        { "type": "node_text" },
+        { "type": "tap_ratio", "x": 0.93, "y": 0.045 },
+        { "type": "global_back" }
+      ],
+      "abortIf": [
+        { "type": "has_edittext" },
+        { "type": "text_contains", "value": "注册" }
+      ]
+    }
+  ]
+}

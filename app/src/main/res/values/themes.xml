@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+        背景改中性冷灰白。
+
+        原因（像素实测）：Material 3 默认调色板偏粉紫，窗口背景实测 RGB(254,247,255)，
+        状态栏露出的就是它 —— 深色的时间和信号压在偏紫的浅色上，看着发灰、不清楚。
+        目标色取自参照图实测的 RGB(247,248,251)。
+
+        只改"表面色"，保留紫色主色（按钮等强调色不变）。
+        夜间模式的对应值放在 values-night/themes.xml，否则深色模式下会被这里的浅色覆盖。
+    -->
+    <style name="Theme.AdSkip" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorSurface">#F7F8FB</item>
+        <item name="colorSurfaceContainerLowest">#FFFFFF</item>
+        <item name="colorSurfaceContainerLow">#F2F4F8</item>
+        <item name="colorSurfaceContainer">#ECEEF3</item>
+        <item name="colorSurfaceContainerHigh">#E6E9EF</item>
+        <item name="colorOnSurface">#1A1C1E</item>
+        <item name="colorOnSurfaceVariant">#44474C</item>
+        <item name="android:windowBackground">#F7F8FB</item>
+        <item name="android:statusBarColor">#F7F8FB</item>
+        <item name="android:navigationBarColor">#F7F8FB</item>
+    </style>
+</resources>

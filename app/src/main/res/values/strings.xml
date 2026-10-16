@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">广告跳过</string>
+    <string name="service_label">广告跳过</string>
+    <string name="service_description">在你打开其他应用时，自动点击开屏广告上本来就存在的"跳过/关闭"按钮。本服务只读取界面上的文字与位置，所有统计只存在本机，不上传任何内容。</string>
+
+    <string name="open_settings">打开无障碍设置</string>
+    <string name="copy_adb">复制 ADB 授权命令</string>
+    <string name="clear_log">清空</string>
+    <string name="expand">展开</string>
+    <string name="collapse">收起</string>
+    <string name="rules_hint">关掉的应用不会再被接管。改动在你下次打开该应用时生效。</string>
+
+    <string name="section_stats">跳过统计</string>
+    <string name="section_rules">规则库</string>
+    <string name="section_log">调试日志</string>
+
+    <string name="copy_stats">复制统计</string>
+    <string name="reset_stats">清零</string>
+
+    <string name="stats_empty">还没有统计数据：打开一个有开屏广告的应用试试</string>
+    <string name="stats_copied">统计已复制，可以直接粘贴</string>
+    <string name="stats_reset">统计已清零</string>
+    <string name="nothing_to_copy">还没有统计数据</string>
+
+    <string name="hint_body">Android 13 及以上，侧载安装的应用默认不允许开启无障碍服务，开关会是灰的。\n\n解决办法：设置 → 应用 → 广告跳过 → 右上角三个点 → 允许受限设置，然后再回来打开开关。\n\nColorOS 还要关掉「权限自动回收」，否则无障碍权限过一段时间会被系统悄悄撤销。</string>
+    <string name="copy_log">复制日志</string>
+    <string name="log_copied">日志已复制</string>
+    <string name="section_theme">夜间模式</string>
+    <string name="theme_follow">跟随系统</string>
+    <string name="theme_light">浅色</string>
+    <string name="theme_dark">深色</string>
+</resources>

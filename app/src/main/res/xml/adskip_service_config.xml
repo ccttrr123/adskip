@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    无障碍服务声明。
+
+    **为什么不监听 typeWindowContentChanged**（续航的关键）：
+    内容变化事件是三类里最吵的一类 —— 滚动、动画、文字刷新都会触发，
+    一次应用启动能产生几十上百次。而自从有了"主动探测"（窗口期每 50~150ms 读一次界面），
+    我们不再依赖它来获得响应速度：探测负责抓时机，窗口状态变化负责发现新启动。
+    真机验证过：去掉它之后贴吧/爱奇艺/微博等依然在 250~700ms 内点到。
+    留着它只会让设备在每个界面变化时都唤醒一次我们的服务。
+
+    notificationTimeout 从 50 提到 120：不再依赖事件密度之后，
+    没必要让系统以 20 次/秒的频率给我们送事件。
+
+    accessibilityFlags：
+      flagReportViewIds          —— 上报 view id，跳过按钮的 id 常含 skip/count_down，是重要证据
+      flagRetrieveInteractiveWindows —— 允许读取多窗口
+      flagIncludeNotImportantViews   —— 广告 SDK 常把自己标记为 importantForAccessibility=no，
+                                        不加这个就完全看不到跳过按钮
+
+    canPerformGestures=true：自绘的跳过按钮没有节点信息，只能靠注入真实手势点击（B站 就是这种）。
+
+    isAccessibilityTool=false：本服务不是为残障用户设计的辅助工具，如实声明。
+                               代价是 Android 14+ 会显示隐私提示，且 Google Play 不允许此类用途
+                               （本项目的分发渠道是 GitHub / F-Droid）。
+-->
+<accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
+    android:accessibilityEventTypes="typeWindowStateChanged|typeWindowsChanged"
+    android:accessibilityFeedbackType="feedbackGeneric"
+    android:accessibilityFlags="flagDefault|flagReportViewIds|flagRetrieveInteractiveWindows|flagIncludeNotImportantViews"
+    android:canPerformGestures="true"
+    android:canRetrieveWindowContent="true"
+    android:description="@string/service_description"
+    android:isAccessibilityTool="false"
+    android:notificationTimeout="120"
+    android:settingsActivity="io.github.adskip.MainActivity" />
