@@ -1,0 +1,8 @@
+First release.
+
+- 20 rules covering Taobao Tieba, Weibo, Zhihu, Bilibili, JD, NetEase Cloud Music, Tencent Video, KOOK, MiYouShe, iQIYI and more
+- 135 unit tests
+- On-device stats: records whether each encountered ad was actually skipped (data never leaves the device)
+- Service status is visible: when the accessibility service drops, the app says so and offers a recovery entry point
+- Never touches payment or banking apps
+- Light / dark / follow-system theme switch

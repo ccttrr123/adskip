@@ -1,1 +1,1 @@
-Skip splash ads via Android accessibility. No root, no network permission.
+Skip splash ads via Android accessibility — no root, no network permission
