@@ -22,7 +22,22 @@
 
 ```powershell
 cd "D:\chen\Documents\DeepSeek Harness\adskip"
-keytool -genkeypair -v -keystore adskip-release.jks -alias adskip -keyalg RSA -keysize 4096 -validity 10000
+**⚠️ 两个已经踩过的坑（2026-10-17 实际撞到）**：
+
+1. **`keytool` 不在 PATH 上** ✗ —— 这台机器的 JDK 在 `D:\java`，但只有 `build.ps1` 会临时设 `JAVA_HOME`，
+   所以普通终端里直接敲 `keytool` 会报「无法将"keytool"项识别为 cmdlet」。**要用全路径**：
+
+   ```powershell
+   & "D:\java\bin\keytool.exe" -genkeypair -v -storetype PKCS12 -keystore adskip-release.jks `
+     -alias adskip -keyalg RSA -keysize 4096 -validity 10000 -dname "CN=adskip, OU=dev, O=adskip, C=CN"
+   ```
+   （想省事也可以先 `$env:Path = "D:\java\bin;" + $env:Path` ✓ 只对当前窗口生效）
+
+2. **`-dname` 不是可选项，是省事的关键** ✓ —— 不加它，keytool 会连着问「您的名字与姓氏」「组织单位」「是否正确？」，
+   而最后那个「是否正确？[否]」**直接回车等于"否"** ✗，会白跑一遍。
+
+3. **PKCS12 只问一次口令** ✓ —— 它要求「主口令」与「密钥库口令」相同，所以
+   `signing.properties` 里的 `storePassword` 和 `keyPassword` **填同一个密码** ✓
 ```
 
 会依次问你：密钥库密码、姓名/组织等（后者随便填）、确认。**RSA 4096 + 有效期 10000 天** ✓
