@@ -10,6 +10,15 @@
 >
 > 还没做的：同包落地页识别（M2）、读不到跳过按钮时的端上兜底、F-Droid 上架。
 > 开发过程中的踩坑、被否决的方案与两条会话的协作复核记录都在 `docs/` 里 —— 动代码前先读那份交接文档。
+> F-Droid 上架材料已备齐（`docs/fdroid-submission.md`），但尚未提交 —— 差一条"活跃开发满 3 个月"，详见该文档。
+
+<p align="center">
+  <img src="fastlane/metadata/android/zh-CN/images/phoneScreenshots/1.png" width="240" alt="主界面：服务状态与已接管的应用">
+  <img src="fastlane/metadata/android/zh-CN/images/phoneScreenshots/2.png" width="240" alt="统计：每个应用遇到广告的次数与跳掉的比例">
+  <img src="fastlane/metadata/android/zh-CN/images/phoneScreenshots/3.png" width="240" alt="深色模式">
+</p>
+
+<p align="center"><sub>左：服务状态与已接管的应用　中：统计　右：深色模式（截图由真机截取，同时用于 F-Droid 列表）</sub></p>
 
 ---
 
