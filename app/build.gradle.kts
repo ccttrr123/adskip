@@ -29,7 +29,7 @@ android {
     signingConfigs {
         if (hasSigning) {
             create("release") {
-                storeFile = file(signingProps.getProperty("storeFile"))
+                storeFile = rootProject.file(signingProps.getProperty("storeFile"))
                 storePassword = signingProps.getProperty("storePassword")
                 keyAlias = signingProps.getProperty("keyAlias")
                 keyPassword = signingProps.getProperty("keyPassword")
