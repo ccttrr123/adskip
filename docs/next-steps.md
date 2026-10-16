@@ -5,7 +5,12 @@
 **只差两件，而且都只能由人来点** ✗ —— 原因已实测：协作会话的 shell 访问不了 GitHub（沙箱 TLS 坏掉，
 `git push` 直接报 `schannel: AcquireCredentialsHandle failed: SEC_E_NO_CREDENTIALS` ✗）。
 
-1. **`git push`** —— 本地领先远端 2 条提交（README 截图嵌入那条 + 前一条）
+1. **`git push`** —— 相对**本地已知的** `origin/main`（`03eaf8d`，2026-10-17 03:56 的引用，**已过期**）
+   领先 **1 条**：`9951a56 docs: 交接文档顶部加"此时此刻的待办"`。
+   ⚠️ 远端此刻的真实位置**没人能确认** —— 沙箱访问不了 GitHub（`git fetch` / `git ls-remote` 都报
+   `schannel: AcquireCredentialsHandle failed: SEC_E_NO_CREDENTIALS`，退出码 128），
+   所以"领先几条"是**相对过期引用**算的。你那边 `git fetch` 一下即可看到真数（可能是 1 条，也可能是 2 条）。
+   （本节原写"领先 2 条"，是按加待办之前的读数写的；加完待办就没再核对 ✗）
 2. **发布 GitHub Release** → https://github.com/ccttrr123/adskip/releases/new
    - 标签选 `v0.1.0` ✓ 标题 `v0.1.0` ✓ **不要勾"预发行版"** ✓
    - 说明：抄 `fastlane/metadata/android/zh-CN/changelogs/1.txt`，或直接用 `docs/fdroid-submission.md` 里那份
