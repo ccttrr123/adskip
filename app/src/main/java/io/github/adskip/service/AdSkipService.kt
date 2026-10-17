@@ -124,9 +124,20 @@ class AdSkipService : AccessibilityService() {
      * 核验失败时只清"我在"标志、**保留** `lastAliveAt`：
      * 界面就能同时显示"已停止"和"最后活跃 N 秒前"，用户看得见它是什么时候走的。
      */
+    /** 上一次心跳核验的结论（只在变化时打日志，避免刷屏） */
+    private var lastLivenessVerdict: Boolean? = null
+
     private val heartbeatTick = object : Runnable {
         override fun run() {
-            if (isStillEnabled()) {
+            val enabled = isStillEnabled()
+            if (enabled != lastLivenessVerdict) {
+                lastLivenessVerdict = enabled
+                DebugLog.w(
+                    "心跳核验 → 启用列表中${if (enabled) "有" else "没有"}我们" +
+                        "（connected=${ServiceHeartbeat.isConnected()}，age=${ServiceHeartbeat.ageMs()}ms）"
+                )
+            }
+            if (enabled) {
                 ServiceHeartbeat.beat()
             } else {
                 ServiceHeartbeat.onServiceDisconnected()
