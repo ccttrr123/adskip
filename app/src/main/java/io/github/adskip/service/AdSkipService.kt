@@ -640,6 +640,30 @@ class AdSkipService : AccessibilityService() {
             StatsStore.recordVerified(targetPkg, ok = false)
             DebugLog.w("[$targetPkg] 点击后同一个跳过节点仍存在，判定未生效（$reason）")
         } else {
+            // M2 阶段一：同包落地页识别（跨应用的情况已在上面用 looksLikeLandingPage 兜底）
+            // 只有"强证据"才影响判定；弱证据只记日志，避免启发式的假阳性污染统计 ✗
+            val labels = nodes.map { it.label() }
+            val confidence = io.github.adskip.engine.LandingPageDetector.detect(labels)
+            val hitWords = io.github.adskip.engine.LandingPageDetector.hits(labels)
+            if (confidence == io.github.adskip.engine.LandingPageDetector.Confidence.STRONG) {
+                // 不记成功，也**不记失败**：这份词表还是启发式，宁可少记一次成功，
+                // 也不要把"误点落地页"算成成功 ✗（成功率虚高比少记一次更糟 ✓）
+                node?.let { FailedNodeStore.recordSuccess(this, it.nodeKey()) }
+                lastSuccessAt[targetPkg] = SystemClock.uptimeMillis()
+                tapAttempts = 0
+                stopProbeLoop()
+                DebugLog.w(
+                    "[$targetPkg] 疑似同包落地页（命中 ${hitWords.joinToString("/")}）" +
+                        "—— 不计成功，也不计失败（$reason）"
+                )
+                return
+            }
+            if (confidence == io.github.adskip.engine.LandingPageDetector.Confidence.WEAK) {
+                DebugLog.i(
+                    "[$targetPkg] 疑似落地页特征较弱（命中 ${hitWords.joinToString("/")}）" +
+                        "—— 仍按成功记，仅记录供事后校正（$reason）"
+                )
+            }
             // 判定成功：进入冷却期，不再碰这个应用
             // 成功了就把这个节点的失败记录清掉（不要因为历史失败永久拉黑一个正常按钮）
             node?.let { FailedNodeStore.recordSuccess(this, it.nodeKey()) }
