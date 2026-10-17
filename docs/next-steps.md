@@ -2,6 +2,22 @@
 
 ## 〇、此时此刻的待办（2026-10-17 凌晨 —— 交接给下一个会话或下一次的我）
 
+> **🔄 2026-10-17 傍晚更新 —— 以下几条优先于本节后面的旧文字**：
+> - **Release `v0.1.0` 已发布** ✓（GitHub API 核对 `draft=false`、`prerelease=false`；附件 `app-release.apk`
+>   大小 `4,727,553` 字节，`digest: sha256:3074cff1991978fbcb5c6aa05817e91bff6b4dc3612ca4bfa06e22dfb685951b`
+>   与本地校验**逐字节一致** ✓）→ **不要重复发布** ✗
+> - **待推提交现在是 5 条** ✗（远端真实位置仍无法从协作会话确认 —— 沙箱 TLS ✗，以你那边 `git fetch` 为准）
+> - **本轮新做，别再重做 / 别回退**：
+>   - `engine/LandingPageDetector`（M2 阶段一）✓ 按**命中类别数**分级：`STRONG`（≥2 类）才不记成功
+>     （也**不记失败**）；`WEAK`（1 类）**只记日志、仍按成功记** ✓ —— 这是**有意的保守** ✗
+>     拿到真机落地页样本前，**不要**把 WEAK 也改成影响统计 ✗
+>   - **心跳 `onDestroy` 竞态修复** ✓✓ —— `onDestroy` 里**不要再调** `ServiceHeartbeat.onServiceDisconnected()` ✗✗
+>     真机证据（装包后界面假报「已停止」约 30 秒）：`18:39:47.786 心跳核验→connected=true` 与
+>     `18:39:47.833 服务已连接` 只差 47ms —— **多实例回调无序**，旧实例的 `onDestroy` 会清掉新实例刚置的状态。
+>     启用状态改由 tick 问系统（`isStillEnabled()`）判定；修完**实测**装完 2 秒即显示「正在工作」✓
+>   - 心跳 tick 现在**只在结论变化时**打一行「心跳核验 → 启用列表中有/没有我们（connected=…, age=…）」✓
+>   - 单元测试 **135 → 142** 全绿 ✓
+
 **只差两件，而且都只能由人来点** ✗ —— 原因已实测：协作会话的 shell 访问不了 GitHub（沙箱 TLS 坏掉，
 `git push` 直接报 `schannel: AcquireCredentialsHandle failed: SEC_E_NO_CREDENTIALS` ✗）。
 
