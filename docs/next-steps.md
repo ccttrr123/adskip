@@ -6,7 +6,8 @@
 > - **Release `v0.1.0` 已发布** ✓（GitHub API 核对 `draft=false`、`prerelease=false`；附件 `app-release.apk`
 >   大小 `4,727,553` 字节，`digest: sha256:3074cff1991978fbcb5c6aa05817e91bff6b4dc3612ca4bfa06e22dfb685951b`
 >   与本地校验**逐字节一致** ✓）→ **不要重复发布** ✗
-> - **待推提交现在是 5 条** ✗（远端真实位置仍无法从协作会话确认 —— 沙箱 TLS ✗，以你那边 `git fetch` 为准）
+> - ~~**待推提交现在是 5 条**~~ → **2026-10-17 18:48:57 已推送，现待推 0 条** ✓
+>   （"5 条"是按推送前的旧引用 `03eaf8d` 数的，实际推送前只剩 `43afc80` 一条。远端状态仍无法从协作会话独立确认 —— 沙箱 TLS ✗）
 > - **本轮新做，别再重做 / 别回退**：
 >   - `engine/LandingPageDetector`（M2 阶段一）✓ 按**命中类别数**分级：`STRONG`（≥2 类）才不记成功
 >     （也**不记失败**）；`WEAK`（1 类）**只记日志、仍按成功记** ✓ —— 这是**有意的保守** ✗
@@ -18,20 +19,19 @@
 >   - 心跳 tick 现在**只在结论变化时**打一行「心跳核验 → 启用列表中有/没有我们（connected=…, age=…）」✓
 >   - 单元测试 **135 → 142** 全绿 ✓
 
-**只差两件，而且都只能由人来点** ✗ —— 原因已实测：协作会话的 shell 访问不了 GitHub（沙箱 TLS 坏掉，
-`git push` 直接报 `schannel: AcquireCredentialsHandle failed: SEC_E_NO_CREDENTIALS` ✗）。
+**（2026-10-17 18:50 核对：本节两件待办都已清空，没有剩余的人工动作）** ✓
 
-1. **`git push`** —— 相对**本地已知的** `origin/main`（`03eaf8d`，2026-10-17 03:56 的引用，**已过期**）
-   领先 **1 条**：`9951a56 docs: 交接文档顶部加"此时此刻的待办"`。
-   ⚠️ 远端此刻的真实位置**没人能确认** —— 沙箱访问不了 GitHub（`git fetch` / `git ls-remote` 都报
-   `schannel: AcquireCredentialsHandle failed: SEC_E_NO_CREDENTIALS`，退出码 128），
-   所以"领先几条"是**相对过期引用**算的。你那边 `git fetch` 一下即可看到真数（可能是 1 条，也可能是 2 条）。
-   （本节原写"领先 2 条"，是按加待办之前的读数写的；加完待办就没再核对 ✗）
-2. **发布 GitHub Release** → https://github.com/ccttrr123/adskip/releases/new
-   - 标签选 `v0.1.0` ✓ 标题 `v0.1.0` ✓ **不要勾"预发行版"** ✓
-   - 说明：抄 `fastlane/metadata/android/zh-CN/changelogs/1.txt`，或直接用 `docs/fdroid-submission.md` 里那份
-   - 附件拖 `app/build/outputs/apk/release/app-release.apk`
-     （4,727,553 字节；SHA256 `3074CFF1991978FBCB5C6AA05817E91BFF6B4DC3612CA4BFA06E22DFB685951B`）
+1. ~~`git push`~~ → ✅ **已完成**。2026-10-17 **18:48:57** 推送成功：
+   `origin/main` = `43afc80` = `HEAD`，**待推 0 条 / 落后 0 条**（reflog 为 `update by push`），工作区干净。
+   （本节原写"待推 5 条"是按**推送前**那个旧引用 `03eaf8d` 数的；实际推送前只剩 1 条 `43afc80`）
+2. ~~发布 GitHub Release~~ → ✅ **已完成**（见上面的傍晚更新块：`draft=false`、`prerelease=false`、附件 sha256 与本地一致）。
+   ⚠️ 本条我（协作会话）**无法独立复核** —— 沙箱访问不了 GitHub。留档备查：
+   发布页 https://github.com/ccttrr123/adskip/releases/new ；
+   附件 `app/build/outputs/apk/release/app-release.apk`（4,727,553 字节，
+   SHA256 `3074CFF1991978FBCB5C6AA05817E91BFF6B4DC3612CA4BFA06E22DFB685951B`）。
+
+> 以后若还要**再发一版**：先改 `versionCode`/`versionName` → 构建 release APK → 打新 tag → push → 发布 Release。
+> 已发布的历史**不要重打 tag 或重传资产** ✗（下载过旧包的人会对不上）。
 
 **已完成、不要再做** ✓：签名 release 构建打通 ✓（`rootProject.file` 那处修复别回退 ✗）、
 F-Droid 材料与截图齐备 ✓、README 状态与截图更新 ✓、仓库已公开且 tag `v0.1.0` 已推送 ✓。
