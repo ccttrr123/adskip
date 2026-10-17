@@ -316,9 +316,16 @@ class AdSkipService : AccessibilityService() {
         handler.removeCallbacksAndMessages(null)
         tracker.reset()
         StatsStore.persistNow()
-        // 服务真正被销毁时才算"我不在了" —— 这里是唯一可靠的停止信号（见 onUnbind 的注释）。
-        // 顺序放在最后：先把手上的事收干净，再让界面改口
-        ServiceHeartbeat.onServiceDisconnected()
+        // **刻意不在这里清"我在"标志**（2026-10-17 修，真机证据如下）。
+        // 原因：onDestroy 与 onServiceConnected 在**多实例之间是无序的** —— 装包 / 重绑时，
+        // 新实例可能先 onServiceConnected 置真，旧实例的 onDestroy 后到又把它清掉，
+        // 界面于是出现"已停止 + 最后活跃 0 秒前"这种任何一次渲染都产生不了的组合，
+        // 并一直持续到下一次心跳（最多约 30 秒）。真机日志：
+        //   18:39:47.786 心跳核验 → 启用列表中有我们（connected=true）
+        //   18:39:47.833 服务已连接
+        // 启用状态改由心跳 tick 问系统（isStillEnabled()）判定：它是权威的，
+        // 且不受回调顺序影响。服务被真正停用时，tick 会在下一跳（≤30s）发现并清标志 ——
+        // 代价仅是"已停止"最多晚 30 秒出现，比"明明在工作却显示已停止"好得多。
         super.onDestroy()
     }
 
