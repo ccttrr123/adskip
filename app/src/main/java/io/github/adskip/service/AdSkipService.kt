@@ -601,14 +601,14 @@ class AdSkipService : AccessibilityService() {
         awaitingVerifyFor = snapshot.pkg
         // 日志里带上"启动后多久才点到"，让"慢"可以被量化而不是凭感觉
         DebugLog.i("[${tag(snapshot)}] 已点击(第${n}次, 启动后${snapshot.firstSeenAgeMs}ms)：$reason")
-        scheduleVerify(snapshot.pkg, reason, node)
+        scheduleVerify(snapshot.pkg, reason, node, snapshot.activityName)
     }
 
     // ------------------------------------------------------------ 校验
 
-    private fun scheduleVerify(targetPkg: String, reason: String, node: UiNode?) {
+    private fun scheduleVerify(targetPkg: String, reason: String, node: UiNode?, activityAtTap: String) {
         pendingVerify?.let { handler.removeCallbacks(it) }
-        val runnable = Runnable { verifyAfterTap(targetPkg, reason, node) }
+        val runnable = Runnable { verifyAfterTap(targetPkg, reason, node, activityAtTap) }
         pendingVerify = runnable
         handler.postDelayed(runnable, VERIFY_DELAY_MS)
     }
@@ -625,7 +625,12 @@ class AdSkipService : AccessibilityService() {
      * 这里无法与"成功跳过"区分。识别同包落地页需要引入落地页特征
      * （下载按钮、"查看详情"、关闭箭头等），留到 M2。
      */
-    private fun verifyAfterTap(targetPkg: String, reason: String, node: UiNode?) {
+    private fun verifyAfterTap(
+        targetPkg: String,
+        reason: String,
+        node: UiNode?,
+        activityAtTap: String = ""
+    ) {
         if (awaitingVerifyFor == targetPkg) awaitingVerifyFor = null
 
         val foreground = tracker.currentPkg()
@@ -653,6 +658,25 @@ class AdSkipService : AccessibilityService() {
             return
         }
         val nodes = NodeReader.read(verifyRoot)
+
+        // 盲点（node == null）专用判据：自绘广告根本不在无障碍树里，
+        // "跳过字样还在不在"对它天然失效 —— 读到的是底层页面。
+        // 真机证据（志愿汇 2026-11-10 20:12）：广告在屏时 dump 到的是主页面、0 个含"跳过"的节点；
+        // 手动点 (153,163) 后广告消失、Activity 从 LaunchActivity 变到 MainActivity。
+        if (node == null && activityAtTap.isNotEmpty() &&
+            currentActivityPkg == targetPkg && currentActivity.isNotEmpty() &&
+            currentActivity != activityAtTap
+        ) {
+            StatsStore.recordVerified(targetPkg, ok = true)
+            lastSuccessAt[targetPkg] = SystemClock.uptimeMillis()
+            tapAttempts = 0
+            stopProbeLoop()
+            DebugLog.i(
+                "[$targetPkg] 盲点后 Activity 已切换（$activityAtTap → $currentActivity），判定成功（$reason）"
+            )
+            return
+        }
+
         val stillThere = if (node != null) {
             // 精确比对：我们点的那一个节点还在不在（含位置，避免同名节点误判）
             nodes.any {
