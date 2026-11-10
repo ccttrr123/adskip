@@ -53,18 +53,34 @@ data class AppRule(
      */
     val skipRegion: String = SkipTargetRanker.REGION_FULL,
     /**
-     * 只在这个矩形内寻找跳过节点，格式 [left, top, right, bottom]（屏幕坐标）；null 表示不限。
+     * 只在这个矩形内寻找跳过节点，格式 [left, top, right, bottom]，**绝对像素**；null 表示不限。
      *
      * 借鉴自同类项目 SKIP 的 `skipBounds`，但比它的用法更保守：节点必须**完全落在**区域内。
      * 它比 `skipRegion` 的"顶部/不限"两档精细得多，也比盲点坐标安全 ——
      * 要求"在这个区域里找到一个真节点"，找不到就不动手；
      * 而盲点坐标是闭着眼睛点一个位置，广告已渲染但按钮还没出来时会点进广告。
      *
+     * ⚠️ **规则库是所有设备共用的**：绝对像素只在一台机器上成立，
+     * 正式规则请用 [nodeBoundsRatio]；这个字段只留给单机调试/一次性排查。
+     *
      * 真机用例（志愿汇）：开屏上同时存在左上角一个点不动的 `tvSkip` 和右上角真正的「跳过 5」。
      * 我们原来把每次启动的 3 次点击预算全浪费在假的上面，真按钮出现时预算已用光 ——
      * 实测 3 次启动 9 次点击只成功 1 次（11%）。用 bounds 排除假候选即可解决。
      */
     val nodeBounds: List<Int>? = null,
+
+    /**
+     * 同 [nodeBounds]，但用**屏幕比例**表示，格式 [left, top, right, bottom]，每项 0.0~1.0。
+     *
+     * 这是给共享规则库用的正确形式：同一份 rules.json 在 1216×2640 手机和 1080×2400、
+     * 平板上都成立。判定时按当前屏幕宽高换算成像素，再要求节点**完全落在**其中。
+     *
+     * 例（志愿汇）：`[0.0, 0.034, 1.0, 1.0]` —— 只砍掉屏幕顶部 3.4% 那条带，
+     * 用来排除 (0,0,210,88) 那个点不动的死节点，同时保留左右两种真按钮。
+     *
+     * 两个字段都写时以本字段为准（比例更安全）。
+     */
+    val nodeBoundsRatio: List<Double>? = null,
     val strategies: List<Strategy> = emptyList(),
     val abortIf: List<AbortCondition> = emptyList()
 ) {

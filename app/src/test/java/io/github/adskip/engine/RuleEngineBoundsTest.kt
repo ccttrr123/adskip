@@ -41,6 +41,25 @@ class RuleEngineBoundsTest {
         abortIf = emptyList()
     )
 
+    /** 比例形式的搜索区域（规则库跨设备共用时应当用这个） */
+    private fun ruleRatio(ratio: List<Double>?) = AppRule(
+        pkg = "com.target",
+        windowMs = 5000,
+        nodeBoundsRatio = ratio,
+        strategies = listOf(Strategy(Strategy.NODE_TEXT)),
+        abortIf = emptyList()
+    )
+
+    private fun snapshotAt(nodes: List<UiNode>, w: Int, h: Int) = UiSnapshot(
+        pkg = "com.target",
+        activityName = "com.target.MainActivity",
+        screenWidth = w,
+        screenHeight = h,
+        firstSeenAgeMs = 900,
+        tapsThisLaunch = 0,
+        nodes = nodes
+    )
+
     @Test
     fun `区域内的候选会被点击`() {
         val engine = RuleEngine(listOf(rule(listOf(900, 60, 1216, 320))))
@@ -92,6 +111,49 @@ class RuleEngineBoundsTest {
         // 右侧与旧式按钮都在区域内（防止区域写得过窄把它们一起排除）
         assertTrue(engine.evaluate(snapshot(listOf(node("5s | 跳过", 925, 191, 1173, 275)))) is Decision.TapNode)
         assertTrue(engine.evaluate(snapshot(listOf(node("跳过 5", 963, 98, 1174, 202)))) is Decision.TapNode)
+    }
+
+    @Test
+    fun `比例区域在两种分辨率上等价_志愿汇案例`() {
+        // 规则库是所有设备共用的，所以正式规则用比例而不是绝对像素。
+        // 志愿汇 取 [0.0, 0.034, 1.0, 1.0]：只砍顶部 3.4% 那条带。
+        val engine = RuleEngine(listOf(ruleRatio(listOf(0.0, 0.034, 1.0, 1.0))))
+
+        // 1216×2640：顶带 = 0.034*2640 ≈ 89px
+        assertTrue(
+            "1216 宽：死节点应出局",
+            engine.evaluate(snapshotAt(listOf(node("跳过", 0, 0, 210, 88)), 1216, 2640)) is Decision.Wait
+        )
+        assertTrue(
+            "1216 宽：左侧真按钮应保留",
+            engine.evaluate(snapshotAt(listOf(node("4S | 跳过", 53, 123, 254, 202)), 1216, 2640)) is Decision.TapNode
+        )
+
+        // 1080×2400：顶带 = 0.034*2400 ≈ 81px；坐标按同比例缩放后结论必须一致
+        assertTrue(
+            "1080 宽：死节点同样应出局（绝对像素写法在这是错的）",
+            engine.evaluate(snapshotAt(listOf(node("跳过", 0, 0, 187, 78)), 1080, 2400)) is Decision.Wait
+        )
+        assertTrue(
+            "1080 宽：左侧真按钮同样应保留",
+            engine.evaluate(snapshotAt(listOf(node("4S | 跳过", 47, 112, 226, 184)), 1080, 2400)) is Decision.TapNode
+        )
+    }
+
+    @Test
+    fun `比例优先于绝对像素`() {
+        // 两个字段都写时以比例为准：绝对像素在别的设备上会错
+        val both = AppRule(
+            pkg = "com.target",
+            windowMs = 5000,
+            nodeBounds = listOf(0, 2000, 1216, 2640),   // 绝对区域：只允许屏幕下半部分
+            nodeBoundsRatio = listOf(0.0, 0.0, 1.0, 1.0), // 比例区域：全屏
+            strategies = listOf(Strategy(Strategy.NODE_TEXT)),
+            abortIf = emptyList()
+        )
+        val engine = RuleEngine(listOf(both))
+        // 顶部节点：绝对区域会排除，比例区域允许 —— 应被比例救回来
+        assertTrue(engine.evaluate(snapshotAt(listOf(node("跳过", 53, 123, 254, 202)), 1216, 2640)) is Decision.TapNode)
     }
 
     @Test

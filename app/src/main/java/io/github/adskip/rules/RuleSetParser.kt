@@ -98,6 +98,11 @@ object RuleSetParser {
                 ?: SkipTargetRanker.REGION_FULL,
             // 必须是恰好 4 个整数，否则当作没写 —— 写坏的坐标比不限制更危险
             nodeBounds = dto.nodeBounds?.takeIf { it.size == 4 },
+            // 比例形式同理，且每项必须落在 0..1、且 left<right / top<bottom；
+            // 规则库跨设备共用，所以正式规则应当写这个而不是绝对像素
+            nodeBoundsRatio = dto.nodeBoundsRatio?.takeIf { r ->
+                r.size == 4 && r.all { it >= 0.0 && it <= 1.0 } && r[0] < r[2] && r[1] < r[3]
+            },
             strategies = strategies,
             abortIf = abortIf
         )

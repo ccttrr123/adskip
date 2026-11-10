@@ -28,6 +28,8 @@ data class AppRuleDto(
     val evidence: List<String>? = null,
     val skipRegion: String? = null,
     val nodeBounds: List<Int>? = null,
+    /** 比例形式的搜索区域（0.0~1.0，四项）。规则库跨设备共用，正式规则用它而不是 nodeBounds */
+    val nodeBoundsRatio: List<Double>? = null,
     val strategies: List<StrategyDto>? = null,
     val abortIf: List<AbortConditionDto>? = null
 )

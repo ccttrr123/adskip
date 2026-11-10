@@ -21,6 +21,28 @@ import java.io.File
 class RuleSetParserTest {
 
     @Test
+    fun `比例搜索区域被解析_非法值当成没写`() {
+        // 规则库跨设备共用，正式规则应当写比例而不是绝对像素
+        val ok = RuleSetParser.parse(
+            """{ "rules": [ { "pkg": "com.a", "nodeBoundsRatio": [0.0, 0.034, 1.0, 1.0], "strategies": [ { "type": "node_text" } ] } ] }"""
+        )
+        assertEquals(listOf(0.0, 0.034, 1.0, 1.0), ok.rules[0].nodeBoundsRatio)
+
+        // 写坏的坐标比不限制更危险 -> 一律当作没写
+        for (bad in listOf(
+            "[0.0, -0.1, 1.0, 1.0]",   // 越界
+            "[0.6, 0.5, 0.2, 1.0]",    // left >= right
+            "[0.0, 0.9, 1.0, 0.4]",    // top >= bottom
+            "[0.0, 0.034, 1.0]"        // 项数不对
+        )) {
+            val r = RuleSetParser.parse(
+                """{ "rules": [ { "pkg": "com.a", "nodeBoundsRatio": $bad, "strategies": [ { "type": "node_text" } ] } ] }"""
+            )
+            assertEquals("非法值应被丢弃: $bad", null, r.rules[0].nodeBoundsRatio)
+        }
+    }
+
+    @Test
     fun `最简规则也能解析并补齐默认值`() {
         // 这是社区贡献者最可能写出的形态：只写包名和一条策略
         val json = """

@@ -137,13 +137,25 @@ class RuleEngine(rules: List<AppRule>) {
                 val candidates = snapshot.nodes.filter {
                     SkipTextMatcher.isSkipLabel(it.label(), patterns)
                 }
+                // 规则声明的搜索区域：节点必须完全落在里面。
+                // 这是排除"同屏其它 跳过/关闭 节点"最可靠的手段 ——
+                // 志愿汇 那个点不动的 tvSkip 就靠它出局，从而不再浪费点击预算。
+                //
+                // 比例形式优先：规则库是所有设备共用的，绝对像素只在一台机器上成立。
+                // 例：[0.0, 0.034, 1.0, 1.0] 在 1216×2640 上等价于 [0, 89, 1216, 2640]。
+                val bounds = rule.nodeBoundsRatio?.let { r ->
+                    val w = snapshot.screenWidth
+                    val h = snapshot.screenHeight
+                    listOf(
+                        (r[0] * w).toInt(),
+                        (r[1] * h).toInt(),
+                        (r[2] * w).toInt(),
+                        (r[3] * h).toInt()
+                    )
+                } ?: rule.nodeBounds
                 val inRegion = candidates.filter { node ->
-                    // 规则声明的搜索区域：节点必须完全落在里面。
-                    // 这是排除"同屏其它 跳过/关闭 节点"最可靠的手段 ——
-                    // 志愿汇 那个点不动的 tvSkip 就靠它出局，从而不再浪费点击预算。
-                    val b = rule.nodeBounds
-                    b == null || (node.left >= b[0] && node.top >= b[1] &&
-                        node.right <= b[2] && node.bottom <= b[3])
+                    bounds == null || (node.left >= bounds[0] && node.top >= bounds[1] &&
+                        node.right <= bounds[2] && node.bottom <= bounds[3])
                 }
                 if (candidates.isEmpty()) return null
 
