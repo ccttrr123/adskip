@@ -10,6 +10,8 @@ import android.util.DisplayMetrics
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
 import io.github.adskip.engine.ActivityName
+import io.github.adskip.engine.BlindObservation
+import io.github.adskip.engine.BlindVerifier
 import io.github.adskip.engine.Decision
 import io.github.adskip.engine.LaunchTracker
 import io.github.adskip.engine.RuleEngine
@@ -544,10 +546,17 @@ class AdSkipService : AccessibilityService() {
             }
 
             is Decision.TapPoint -> {
+                // 盲点没有节点可比对：在**注入点击之前**先记下窗口层面的事实，
+                // 1 秒后拿它和校验时的状态比（自绘广告不在节点树里，见 BlindVerifier）。
+                val blindAtTap = BlindObservationReader.read(this)
                 val ok = gestureTapper.tap(decision.x, decision.y)
                 if (ok) {
-                    // 盲点没有节点可比对，校验退回"界面上还有没有跳过字样"
-                    onTapIssued(snapshot, "${decision.reason} @(${decision.x},${decision.y})", null)
+                    onTapIssued(
+                        snapshot,
+                        "${decision.reason} @(${decision.x},${decision.y})",
+                        null,
+                        blindAtTap
+                    )
                 } else {
                     DebugLog.w("[${tag(snapshot)}] 坐标点击注入失败：${decision.reason}")
                 }
@@ -592,7 +601,12 @@ class AdSkipService : AccessibilityService() {
         return target.performAction(android.view.accessibility.AccessibilityNodeInfo.ACTION_CLICK)
     }
 
-    private fun onTapIssued(snapshot: UiSnapshot, reason: String, node: UiNode?) {
+    private fun onTapIssued(
+        snapshot: UiSnapshot,
+        reason: String,
+        node: UiNode?,
+        blindAtTap: BlindObservation? = null
+    ) {
         val now = SystemClock.uptimeMillis()
         val n = tracker.recordTap()
         StatsStore.recordClick(snapshot.pkg)
@@ -601,14 +615,22 @@ class AdSkipService : AccessibilityService() {
         awaitingVerifyFor = snapshot.pkg
         // 日志里带上"启动后多久才点到"，让"慢"可以被量化而不是凭感觉
         DebugLog.i("[${tag(snapshot)}] 已点击(第${n}次, 启动后${snapshot.firstSeenAgeMs}ms)：$reason")
-        scheduleVerify(snapshot.pkg, reason, node, snapshot.activityName)
+        if (blindAtTap != null) {
+            DebugLog.i("[${tag(snapshot)}] 盲点校验基线：${blindAtTap.describe()}")
+        }
+        scheduleVerify(snapshot.pkg, reason, node, blindAtTap)
     }
 
     // ------------------------------------------------------------ 校验
 
-    private fun scheduleVerify(targetPkg: String, reason: String, node: UiNode?, activityAtTap: String) {
+    private fun scheduleVerify(
+        targetPkg: String,
+        reason: String,
+        node: UiNode?,
+        blindAtTap: BlindObservation? = null
+    ) {
         pendingVerify?.let { handler.removeCallbacks(it) }
-        val runnable = Runnable { verifyAfterTap(targetPkg, reason, node, activityAtTap) }
+        val runnable = Runnable { verifyAfterTap(targetPkg, reason, node, blindAtTap) }
         pendingVerify = runnable
         // 盲点没有节点可比对，而且自绘广告消失得比普通点击慢（实测 ~900ms）—— 等久一点再判
         val delay = if (node == null) BLIND_VERIFY_DELAY_MS else VERIFY_DELAY_MS
@@ -618,20 +640,29 @@ class AdSkipService : AccessibilityService() {
     /**
      * 点击后校验。点到广告本体比不跳过更糟，用户会直接卸载，所以这一步不能省。
      *
-     * 校验必须**精确到我们点的那一个节点**（按屏幕边界比对），不能只看"界面上还有没有跳过字样"：
-     * 真机上京东的广告关掉之后，它自己的首页上还有别的「跳过」（活动动画之类），
-     * 用粗粒度判断会把成功误判成失败 —— 既不会进入成功冷却，还会触发重试去点那个无关节点。
-     * 志愿汇 曾经连续点 4 次就是这个原因。
+     * 两条路径，判据完全不同：
+     *
+     * **文本节点路径（node != null）**：按屏幕边界精确比对我们点的那一个节点还在不在。
+     * 不能只看"界面上还有没有跳过字样"：真机上京东的广告关掉之后，它自己的首页上还有别的
+     * 「跳过」（活动动画之类），用粗粒度判断会把成功误判成失败 —— 既不会进入成功冷却，
+     * 还会触发重试去点那个无关节点。志愿汇 曾经连续点 4 次就是这个原因。
+     *
+     * **盲点路径（node == null）**：自绘广告**不在无障碍节点树里**（广告在屏时读到的是底下
+     * 的主页面，0 个含"跳过"的节点），"跳过字样还在不在"对它是误判 —— 真机证据见
+     * docs/next-steps.md §9.5。这条路径只比点击前后的窗口层面事实（**点击时还在的目标应用
+     * 窗口是否消失**），交给纯函数 [BlindVerifier.judge] 判成功 / 未生效 / 无法判断；
+     * 都读不到时**不记结论**并停止探测。判定为成功时仍用落地页强特征兜底（防止"点到广告本体
+     * →同包落地页"被当成成功）。
      *
      * M1 的已知局限（不掩饰）：广告落地页如果打开在**同一个包**内的新 Activity，
-     * 这里无法与"成功跳过"区分。识别同包落地页需要引入落地页特征
+     * 文本路径无法与"成功跳过"区分。识别同包落地页需要引入落地页特征
      * （下载按钮、"查看详情"、关闭箭头等），留到 M2。
      */
     private fun verifyAfterTap(
         targetPkg: String,
         reason: String,
         node: UiNode?,
-        activityAtTap: String = ""
+        blindAtTap: BlindObservation? = null
     ) {
         if (awaitingVerifyFor == targetPkg) awaitingVerifyFor = null
 
@@ -647,6 +678,73 @@ class AdSkipService : AccessibilityService() {
             return
         }
 
+        // ---------------------------------------------------------------- 盲点路径
+        if (node == null) {
+            val after = BlindObservationReader.read(this)
+            // 跨应用守卫：校验时前台已经是别的应用/我们自己 → 不记结论（宁可少记，也不记假成功）
+            val afterPkg = after.activePackage
+            if (afterPkg != null && afterPkg != targetPkg) {
+                DebugLog.i(
+                    "[$targetPkg] 盲点校验跳过：当前界面属于 $afterPkg，不是目标应用" +
+                        " —— 不记成功也不记失败（$reason）"
+                )
+                return
+            }
+            // 没有"点击时"的基线就不判：不能拿"现在看起来正常"直接当成功
+            val before = blindAtTap
+            if (before == null) {
+                // 正常不会发生（dispatch 里一定先读 baseline）；真发生了说明调用链被改坏了，
+                // 这里不把它伪装成"读不到"，而是明确不记结论。
+                stopProbeLoop()
+                DebugLog.w("[$targetPkg] 盲点校验缺少点击前基线 —— 不记成功也不记失败，停止本次探测（$reason）")
+                return
+            }
+            when (val verdict = BlindVerifier.judge(targetPkg, before, after)) {
+                is BlindVerifier.Verdict.Success -> {
+                    // 同包落地页兜底：窗口被换掉也可能是"点到广告本体→同包新 Activity"。
+                    // 这里只读标签做落地页特征（不判断"跳过字样"，盲点路径不靠它判成功）。
+                    val labels = NodeReader.read(rootInActiveWindow).map { it.label() }
+                    val confidence = io.github.adskip.engine.LandingPageDetector.detect(labels)
+                    if (confidence == io.github.adskip.engine.LandingPageDetector.Confidence.STRONG) {
+                        val hitWords = io.github.adskip.engine.LandingPageDetector.hits(labels)
+                        lastSuccessAt[targetPkg] = SystemClock.uptimeMillis()
+                        tapAttempts = 0
+                        stopProbeLoop()
+                        DebugLog.w(
+                            "[$targetPkg] 盲点校验疑似同包落地页（命中 ${hitWords.joinToString("/")}）" +
+                                " —— 不计成功，也不计失败（$reason）"
+                        )
+                        return
+                    }
+                    StatsStore.recordVerified(targetPkg, ok = true)
+                    lastSuccessAt[targetPkg] = SystemClock.uptimeMillis()
+                    tapAttempts = 0
+                    stopProbeLoop()
+                    DebugLog.i("[$targetPkg] 盲点校验 → 判定成功（${verdict.evidence}；$reason）")
+                }
+
+                is BlindVerifier.Verdict.Unchanged -> {
+                    // 窗口列表读到了、点击时的目标应用窗口都还在 = 广告确实还在。
+                    // 与以前一样记失败、继续重试（重试仍受 MAX_TAPS_PER_LAUNCH 限制）
+                    StatsStore.recordVerified(targetPkg, ok = false)
+                    DebugLog.w("[$targetPkg] 盲点校验 → 判定未生效（${verdict.evidence}；$reason）")
+                }
+
+                is BlindVerifier.Verdict.Unknown -> {
+                    // 没有观察就没有结论：不记成功也不记失败。
+                    // 同时停止探测：连"广告在不在"都读不到时，继续盲点只会在界面上乱点
+                    stopProbeLoop()
+                    DebugLog.w(
+                        "[$targetPkg] 盲点校验 → 无法判断（${verdict.reason}）" +
+                            "｜点击时=${before.describe()}｜校验时=${after.describe()}" +
+                            " —— 不记成功也不记失败，停止本次探测（$reason）"
+                    )
+                }
+            }
+            return
+        }
+
+        // ---------------------------------------------------------------- 文本节点路径
         // 校验前先确认界面仍属于目标应用：否则读到的可能是**别的应用/我们自己**的界面，
         // 于是"跳过按钮不见了"被当成跳掉了 → 记一次假成功。
         // 真机事故（2026-11-10）：切到本应用界面时，校验读到了 statusTitle/logText。
@@ -661,32 +759,10 @@ class AdSkipService : AccessibilityService() {
         }
         val nodes = NodeReader.read(verifyRoot)
 
-        // 盲点（node == null）专用判据：自绘广告根本不在无障碍树里，
-        // "跳过字样还在不在"对它天然失效 —— 读到的是底层页面。
-        // 真机证据（志愿汇 2026-11-10 20:12）：广告在屏时 dump 到的是主页面、0 个含"跳过"的节点；
-        // 手动点 (153,163) 后广告消失、Activity 从 LaunchActivity 变到 MainActivity。
-        if (node == null && activityAtTap.isNotEmpty() &&
-            currentActivityPkg == targetPkg && currentActivity.isNotEmpty() &&
-            currentActivity != activityAtTap
-        ) {
-            StatsStore.recordVerified(targetPkg, ok = true)
-            lastSuccessAt[targetPkg] = SystemClock.uptimeMillis()
-            tapAttempts = 0
-            stopProbeLoop()
-            DebugLog.i(
-                "[$targetPkg] 盲点后 Activity 已切换（$activityAtTap → $currentActivity），判定成功（$reason）"
-            )
-            return
-        }
-
-        val stillThere = if (node != null) {
-            // 精确比对：我们点的那一个节点还在不在（含位置，避免同名节点误判）
-            nodes.any {
-                it.left == node.left && it.top == node.top &&
-                    it.right == node.right && it.bottom == node.bottom
-            }
-        } else {
-            nodes.any { SkipTextMatcher.isSkipLabel(it.label()) }
+        // 精确比对：我们点的那一个节点还在不在（含位置，避免同名节点误判）
+        val stillThere = nodes.any {
+            it.left == node.left && it.top == node.top &&
+                it.right == node.right && it.bottom == node.bottom
         }
 
         // 判成功前先问一句：界面上是不是还有跳过字样？
@@ -716,7 +792,7 @@ class AdSkipService : AccessibilityService() {
             if (confidence == io.github.adskip.engine.LandingPageDetector.Confidence.STRONG) {
                 // 不记成功，也**不记失败**：这份词表还是启发式，宁可少记一次成功，
                 // 也不要把"误点落地页"算成成功 ✗（成功率虚高比少记一次更糟 ✓）
-                node?.let { FailedNodeStore.recordSuccess(this, it.nodeKey()) }
+                node.let { FailedNodeStore.recordSuccess(this, it.nodeKey()) }
                 lastSuccessAt[targetPkg] = SystemClock.uptimeMillis()
                 tapAttempts = 0
                 stopProbeLoop()
@@ -734,7 +810,7 @@ class AdSkipService : AccessibilityService() {
             }
             // 判定成功：进入冷却期，不再碰这个应用
             // 成功了就把这个节点的失败记录清掉（不要因为历史失败永久拉黑一个正常按钮）
-            node?.let { FailedNodeStore.recordSuccess(this, it.nodeKey()) }
+            node.let { FailedNodeStore.recordSuccess(this, it.nodeKey()) }
             lastSuccessAt[targetPkg] = SystemClock.uptimeMillis()
             tapAttempts = 0
             StatsStore.recordVerified(targetPkg, ok = true)
@@ -852,11 +928,10 @@ class AdSkipService : AccessibilityService() {
         /**
          * 盲点（[Decision.TapPoint]）专用的校验延迟。
          *
-         * 真机实测（志愿汇 2026-11-10 20:12）：手动 `input tap 153 163` 点掉自绘广告后，
-         * **约 900ms** 橙色广告背景才消失、Activity 才切到 MainActivity。
-         * 用 700ms 去校验时 Activity 还没变，于是落回"跳过字样还在不在"的旧判据 ——
-         * 而那条判据对不在无障碍树里的自绘广告必然误判为失败（读到的是主页面）。
-         * 所以盲点路径必须等得更久。
+         * 真机实测（志愿汇 2026-11-10）：点击跳过生效后，**约 1 秒内**启动 Activity 的窗口
+         * 才会被 MainActivity 的窗口换掉（关掉无障碍服务的对照组里，同一个窗口要到约 7.5 秒
+         * 才因广告倒计时结束而消失 —— 所以"1 秒内消失"是点击造成的，不是应用自己推进）。
+         * 用 700ms 去校验时窗口经常还没换完，会把"已经点掉"记成"未生效"，所以盲点路径等得更久。
          */
         const val BLIND_VERIFY_DELAY_MS = 1_000L
         const val MAX_STRIKES = 3
