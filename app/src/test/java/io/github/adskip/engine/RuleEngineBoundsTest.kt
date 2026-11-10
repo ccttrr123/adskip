@@ -68,6 +68,33 @@ class RuleEngineBoundsTest {
     }
 
     @Test
+    fun `志愿汇_顶部死节点出局_左右两种真按钮都保留`() {
+        // 2026-11-10 真机日志（19:26~19:28）逐次核对：
+        //   死节点     tvSkip            (0,0,210,88)     —— 每次启动都先被点一次，判定未生效
+        //   真按钮(左) tev_countdown     (53,123,254,202) —— "4S | 跳过"
+        //   真按钮(右) sdm_myoffer_skip  (925,191,1173,275) —— "5s | 跳过"
+        //   真按钮(旧) 无 id            (963,98,1174,202) —— 24 天前的日志里出现过
+        // 所以区域取"只砍掉顶部 90px 那条带"，三种真按钮的 top 都 >= 90，全部保留。
+        val engine = RuleEngine(listOf(rule(listOf(0, 90, 1216, 2640))))
+        val dead = node("跳过", 0, 0, 210, 88)
+        val leftReal = node("4S | 跳过", 53, 123, 254, 202)
+
+        val decision = engine.evaluate(snapshot(listOf(dead, leftReal)))
+        assertTrue("应选中左侧真按钮，实际=$decision", decision is Decision.TapNode)
+        assertEquals("必须跳过顶部死节点", leftReal, (decision as Decision.TapNode).node)
+
+        // 同屏只剩死节点时：不点，交给后面的策略（盲点/等待）
+        assertTrue(
+            "只剩死节点时必须否决，实际=${engine.evaluate(snapshot(listOf(dead)))}",
+            engine.evaluate(snapshot(listOf(dead))) is Decision.Wait
+        )
+
+        // 右侧与旧式按钮都在区域内（防止区域写得过窄把它们一起排除）
+        assertTrue(engine.evaluate(snapshot(listOf(node("5s | 跳过", 925, 191, 1173, 275)))) is Decision.TapNode)
+        assertTrue(engine.evaluate(snapshot(listOf(node("跳过 5", 963, 98, 1174, 202)))) is Decision.TapNode)
+    }
+
+    @Test
     fun `边界恰好相等时算在区域内`() {
         val engine = RuleEngine(listOf(rule(listOf(100, 200, 300, 400))))
         val exactly = node("跳过", 100, 200, 300, 400)
