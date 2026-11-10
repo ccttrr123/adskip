@@ -62,4 +62,15 @@ class FailedNodeTrackerTtlTest {
         t.blacklist(31L * 24 * hour)
         assertTrue("记录应被清理", t.snapshot().isEmpty())
     }
+
+    @Test
+    fun `重启后_上一轮开机的失败记录立即作废`() {
+        // 时间戳是 SystemClock.elapsedRealtime()，重启后从 0 重数。
+        // 所以"记录里的时间 > 现在"只可能来自上一次开机 —— 必须直接丢弃，
+        // 否则差值恒为负，分级 TTL 与 30 天遗忘全部失效（黑名单会多黑"上次开机时长 + TTL"）。
+        val t = FailedNodeTracker()
+        repeat(10) { t.recordFailure("a", 5_000_000L) }   // 上次开机累计 5000 秒时失败 10 次
+        assertFalse("重启后不应沿用旧记录拉黑", t.blacklist(60_000L).contains("a"))
+        assertTrue("旧记录应被一并清理", t.snapshot().isEmpty())
+    }
 }

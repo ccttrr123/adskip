@@ -46,9 +46,15 @@ class FailedNodeTracker(
      *  - 拉黑时长**按失败次数分级**：3~5 次 30 分钟 / 6~9 次 6 小时 / ≥10 次 24 小时 ✓
      *    → 死节点大约每天只被白点一次，而正常按钮最多 30 分钟就会重试（不会永久误伤 ✓）
      *  - 只有"30 天都没再失败"的记录才会被忘掉（防 map 无限增长 ✓）
+     *  - **跨重启**：时间戳来自 `SystemClock.elapsedRealtime()`，重启后从 0 重数，
+     *    所以"记录里的时间 > 现在"只可能来自上一次开机 → 直接丢弃 ✓
+     *    （不加这一条的话，差值恒为负，分级 TTL 与 30 天遗忘**全都失效**，
+     *    重启后黑名单会持续"上次开机时长 + 分级 TTL"那么久）
      */
     fun blacklist(now: Long): Set<String> {
-        failures.entries.removeAll { now - it.value.lastFailAt > FORGET_MS }
+        failures.entries.removeAll {
+            it.value.lastFailAt > now || now - it.value.lastFailAt > FORGET_MS
+        }
         return failures.filterValues {
             it.count >= threshold && now - it.lastFailAt <= ttlFor(it.count)
         }.keys.toSet()
