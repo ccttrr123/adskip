@@ -18,7 +18,7 @@
     { "pkg": "cn.kaiheila", "name": "KOOK", "strategies": [{ "type": "node_text" }], "abortIf": [{ "type": "has_edittext" }] },
     { "pkg": "cn.com.yunma.school.app", "name": "易校园", "strategies": [{ "type": "node_text" }], "abortIf": [{ "type": "has_edittext" }] },
     { "pkg": "com.yunzhi.tiyu", "name": "云运动", "strategies": [{ "type": "node_text" }], "abortIf": [{ "type": "has_edittext" }] },
-    { "pkg": "com.zzw.october", "name": "志愿汇", "windowMs": 8000, "activityHints": ["LaunchActivity"], "evidence": ["fullscreen_media", "activity_hint"], "nodeBounds": [0, 90, 1216, 2640], "strategies": [{ "type": "node_text" }, { "type": "tap_ratio", "x": 0.908, "y": 0.09 }], "abortIf": [{ "type": "has_edittext" }] },
+    { "pkg": "com.zzw.october", "name": "志愿汇", "windowMs": 8000, "activityHints": ["LaunchActivity"], "evidence": ["fullscreen_media", "activity_hint"], "nodeBounds": [0, 90, 1216, 2640], "strategies": [{ "type": "node_text" }, { "type": "tap_ratio", "x": 0.126, "y": 0.062 }], "abortIf": [{ "type": "has_edittext" }] },
     { "pkg": "com.mihoyo.hyperion", "name": "米游社", "strategies": [{ "type": "node_text" }], "abortIf": [{ "type": "has_edittext" }] },
     { "pkg": "com.chaoxing.mobile", "name": "学习通", "strategies": [{ "type": "node_text" }], "abortIf": [{ "type": "has_edittext" }] },
 
