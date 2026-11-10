@@ -610,7 +610,9 @@ class AdSkipService : AccessibilityService() {
         pendingVerify?.let { handler.removeCallbacks(it) }
         val runnable = Runnable { verifyAfterTap(targetPkg, reason, node, activityAtTap) }
         pendingVerify = runnable
-        handler.postDelayed(runnable, VERIFY_DELAY_MS)
+        // 盲点没有节点可比对，而且自绘广告消失得比普通点击慢（实测 ~900ms）—— 等久一点再判
+        val delay = if (node == null) BLIND_VERIFY_DELAY_MS else VERIFY_DELAY_MS
+        handler.postDelayed(runnable, delay)
     }
 
     /**
@@ -846,6 +848,17 @@ class AdSkipService : AccessibilityService() {
         const val LOG_DEDUP_MS = 10_000L
 
         const val VERIFY_DELAY_MS = 700L
+
+        /**
+         * 盲点（[Decision.TapPoint]）专用的校验延迟。
+         *
+         * 真机实测（志愿汇 2026-11-10 20:12）：手动 `input tap 153 163` 点掉自绘广告后，
+         * **约 900ms** 橙色广告背景才消失、Activity 才切到 MainActivity。
+         * 用 700ms 去校验时 Activity 还没变，于是落回"跳过字样还在不在"的旧判据 ——
+         * 而那条判据对不在无障碍树里的自绘广告必然误判为失败（读到的是主页面）。
+         * 所以盲点路径必须等得更久。
+         */
+        const val BLIND_VERIFY_DELAY_MS = 1_000L
         const val MAX_STRIKES = 3
 
         /**
