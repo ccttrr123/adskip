@@ -39,7 +39,18 @@ class RuleEngine(rules: List<AppRule>) {
         val evidence = collectEvidence(rule, snapshot)
         val blocked = mutableListOf<String>()
 
+        // 同一规则可以配多个 tap_ratio：不同广告变体的跳过按钮位置不同
+        // （志愿汇 就有左上药丸 (53,123,254,202) 和右上圆钮 (约 1102,162) 两种）。
+        // 必须按"本次启动第几次点击"轮换，否则第一个生效的策略会永远挡住后面的。
+        val tapRatios = rule.strategies.filter { it.type == Strategy.TAP_RATIO }
+        val chosenTap = if (tapRatios.size > 1) snapshot.tapsThisLaunch % tapRatios.size else 0
+        var tapSeen = 0
+
         for (strategy in rule.strategies) {
+            if (strategy.type == Strategy.TAP_RATIO) {
+                val idx = tapSeen++
+                if (tapRatios.size > 1 && idx != chosenTap) continue
+            }
             applyStrategy(rule, strategy, snapshot, evidence, blocked)?.let { return it }
         }
 
