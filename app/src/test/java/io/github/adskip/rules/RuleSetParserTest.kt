@@ -188,5 +188,33 @@ class RuleSetParserTest {
         assertNotNull("内置规则库应保留一条示例规则用于演示 schema", demo)
         assertFalse("示例规则必须默认禁用", demo!!.enabled)
         assertTrue(demo.strategies.any { it.type == Strategy.TAP_RATIO })
+
+        // 志愿汇 是唯一配置了"盲点最小出手时间"的应用（2026-11-10 真机：按钮约 2 秒后才可点）。
+        // 这条防止规则库被误改/回退后盲点又在按钮渲染前出手（会点进广告、打开浏览器）。
+        val zzw = ruleSet.rules.first { it.pkg == "com.zzw.october" }
+        assertEquals(2400L, zzw.blindMinAgeMs)
+
+        // 两个盲点的顺序也是真机数据定的：这几天有效的都是右侧点（0.906 在前），
+        // 左侧几乎总是点空、只能当第 2 次兜底。顺序即轮换顺序，被改回去会白点一次。
+        val tapRatios = zzw.strategies.filter { it.type == Strategy.TAP_RATIO }
+        assertEquals(listOf(0.906f, 0.126f), tapRatios.map { it.x })
+    }
+
+    @Test
+    fun `盲点最小出手时间_缺省为0_写出时解析并夹到合法范围`() {
+        // 缺省：不改变老规则的行为
+        val default = RuleSetParser.parse(
+            """{ "rules": [ { "pkg": "com.a", "strategies": [ { "type": "node_text" } ] } ] }"""
+        ).rules[0]
+        assertEquals(0L, default.blindMinAgeMs)
+
+        fun parseWith(value: String) = RuleSetParser.parse(
+            """{ "rules": [ { "pkg": "com.a", "blindMinAgeMs": $value, "strategies": [ { "type": "node_text" } ] } ] }"""
+        ).rules[0].blindMinAgeMs
+
+        assertEquals(1200L, parseWith("1200"))
+        // 负数当作 0（不等待），超大值夹到时间窗上限 —— 写大了只会少点盲点，不会更危险
+        assertEquals(0L, parseWith("-5"))
+        assertEquals(RuleSetParser.MAX_WINDOW_MS, parseWith("999999"))
     }
 }

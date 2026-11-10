@@ -206,6 +206,16 @@ class RuleEngine(rules: List<AppRule>) {
             }
 
             Strategy.TAP_RATIO -> {
+                // 时间门槛：按钮/广告往往要 ~1 秒才渲染，太早的盲点必然点空。
+                // 先让文本策略有机会（它每次判定都排在最前面），过了门槛盲点才兜底。
+                // 默认 0 = 不做门槛，现有应用行为不变；只有显式配置的应用才会等。
+                if (snapshot.firstSeenAgeMs < rule.blindMinAgeMs) {
+                    // 注意：理由里**不要带当前毫秒数** —— 探测循环每 50~150ms 判定一次，
+                    // 带上年龄会让日志去重键每次都变，真机上刷出 20 行/次启动的噪声（实测）。
+                    blocked += "盲点策略等到 ${rule.blindMinAgeMs}ms 再出手，让文本策略先有机会"
+                    return null
+                }
+
                 // 盲点必须有依据：没有旁证就不允许执行，否则等于每次启动乱点一下
 
                 val unlocked = rule.evidence.any { it in evidence }

@@ -24,6 +24,8 @@ data class AppRuleDto(
     val name: String? = null,
     val enabled: Boolean? = null,
     val windowMs: Long? = null,
+    /** 盲点（tap_ratio）的最小出手时间；缺省 0，表示与以前一样不做时间门槛 */
+    val blindMinAgeMs: Long? = null,
     val activityHints: List<String>? = null,
     val evidence: List<String>? = null,
     val skipRegion: String? = null,

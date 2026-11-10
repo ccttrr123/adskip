@@ -87,6 +87,9 @@ object RuleSetParser {
             name = dto.name?.trim()?.takeIf { it.isNotEmpty() },
             enabled = dto.enabled ?: true,
             windowMs = (dto.windowMs ?: DEFAULT_WINDOW_MS).coerceIn(1L, MAX_WINDOW_MS),
+            // 盲点最小出手时间：缺省 0（行为与旧版本一致）；夹到 [0, MAX_WINDOW_MS]。
+            // 写超过时间窗没有意义（时间窗一过引擎本来就不再介入），夹住而不是丢弃。
+            blindMinAgeMs = (dto.blindMinAgeMs ?: 0L).coerceIn(0L, MAX_WINDOW_MS),
             activityHints = dto.activityHints.orEmpty().filter { it.isNotBlank() },
             evidence = dto.evidence.orEmpty()
                 .filter { it in DEFAULT_EVIDENCE }
