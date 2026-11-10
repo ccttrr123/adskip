@@ -455,6 +455,18 @@ class AdSkipService : AccessibilityService() {
             return
         }
 
+        // 包名核对：节点树必须真的属于正在判定的那个应用。
+        // 真机事故（2026-11-10 19:27:50 / 19:30:44）：切到本应用界面时，仍拿 志愿汇 的规则去判定，
+        // 候选里出现了「广告跳过 正在工作」「跳过统计」「logText」，而且**真的点了** ——
+        // 既白耗点击预算，也可能误触其它应用。这里直接拒绝跨应用判定。
+        val rootPkg = root.packageName?.toString()
+        if (rootPkg != null && rootPkg != pkg) {
+            logOnce(pkg, "root-pkg-mismatch") {
+                "[${tagFor(pkg)}] 当前界面属于 $rootPkg 而不是 $pkg，跳过本次判定（防止用错规则误点）"
+            }
+            return
+        }
+
         // 支付/金融类永不接管：**连界面内容都不读**，不只是不点击。
         // 放在 NodeReader.read 之前，所以这些界面从未进入过我们的进程。
         if (NeverTouch.isBlocked(pkg)) return
@@ -628,7 +640,19 @@ class AdSkipService : AccessibilityService() {
             return
         }
 
-        val nodes = NodeReader.read(rootInActiveWindow)
+        // 校验前先确认界面仍属于目标应用：否则读到的可能是**别的应用/我们自己**的界面，
+        // 于是"跳过按钮不见了"被当成跳掉了 → 记一次假成功。
+        // 真机事故（2026-11-10）：切到本应用界面时，校验读到了 statusTitle/logText。
+        val verifyRoot = rootInActiveWindow
+        val verifyPkg = verifyRoot?.packageName?.toString()
+        if (verifyRoot == null || (verifyPkg != null && verifyPkg != targetPkg)) {
+            DebugLog.i(
+                "[$targetPkg] 校验跳过：当前界面属于 ${verifyPkg ?: "未知"}，不是目标应用" +
+                    " —— 不记成功也不记失败（$reason）"
+            )
+            return
+        }
+        val nodes = NodeReader.read(verifyRoot)
         val stillThere = if (node != null) {
             // 精确比对：我们点的那一个节点还在不在（含位置，避免同名节点误判）
             nodes.any {
