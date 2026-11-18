@@ -56,7 +56,7 @@
                     <!-- 工作态只留这个「设置」；未开启/已停止才显示下面的大主按钮与 ADB 命令 -->
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/statusSettingsButton"
-                        style="?attr/materialButtonOutlinedStyle"
+                        style="@style/Widget.Material3.Button.TextButton"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/status_settings"
@@ -69,7 +69,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:textSize="13sp"
+                    android:lineSpacingExtra="2dp"
+                    android:textSize="14sp"
                     tools:text="开启后才会开始工作" />
 
                 <com.google.android.material.button.MaterialButton
@@ -128,7 +129,7 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/toggleHelpButton"
-                        style="?attr/materialButtonOutlinedStyle"
+                        style="@style/Widget.Material3.Button.TextButton"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/expand" />
@@ -141,7 +142,7 @@
                     android:layout_marginTop="6dp"
                     android:alpha="0.6"
                     android:text="@string/help_hint"
-                    android:textSize="11sp" />
+                    android:textSize="12sp" />
 
                 <LinearLayout
                     android:id="@+id/helpBody"
@@ -157,11 +158,11 @@
                         android:layout_height="wrap_content"
                         android:lineSpacingExtra="3dp"
                         android:text="@string/help_body"
-                        android:textSize="13sp" />
+                        android:textSize="14sp" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/copyHelpButton"
-                        style="?attr/materialButtonOutlinedStyle"
+                        style="@style/Widget.Material3.Button.TextButton"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="10dp"
@@ -200,18 +201,19 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/copyStatsButton"
-                        style="?attr/materialButtonOutlinedStyle"
+                        style="@style/Widget.Material3.Button.TextButton"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/copy_stats" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/resetStatsButton"
-                        style="?attr/materialButtonOutlinedStyle"
+                        style="@style/Widget.Material3.Button.TextButton"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="6dp"
-                        android:text="@string/reset_stats" />
+                        android:text="@string/reset_stats"
+                        android:textColor="?attr/colorError" />
                 </LinearLayout>
 
                 <!--
@@ -273,7 +275,7 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/toggleRulesButton"
-                        style="?attr/materialButtonOutlinedStyle"
+                        style="@style/Widget.Material3.Button.TextButton"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/expand" />
@@ -286,7 +288,7 @@
                     android:layout_marginTop="6dp"
                     android:alpha="0.6"
                     android:text="@string/rules_hint"
-                    android:textSize="11sp"
+                    android:textSize="12sp"
                     android:visibility="gone"
                     tools:visibility="visible" />
 
@@ -393,18 +395,19 @@
                     <!-- 顺序与样式刻意与统计卡一致：先"复制"，再"清空" -->
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/copyLogButton"
-                        style="?attr/materialButtonOutlinedStyle"
+                        style="@style/Widget.Material3.Button.TextButton"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/copy_log" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/clearLogButton"
-                        style="?attr/materialButtonOutlinedStyle"
+                        style="@style/Widget.Material3.Button.TextButton"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="6dp"
-                        android:text="@string/clear_log" />
+                        android:text="@string/clear_log"
+                        android:textColor="?attr/colorError" />
                 </LinearLayout>
 
                 <!--

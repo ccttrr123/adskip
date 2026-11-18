@@ -19,6 +19,13 @@
     <string name="copy_stats">复制统计</string>
     <string name="reset_stats">清零</string>
 
+    <string name="confirm">确定</string>
+    <string name="cancel">取消</string>
+    <string name="reset_stats_confirm_title">清零统计？</string>
+    <string name="reset_stats_confirm_message">所有应用的启动 / 广告 / 点击 / 成功统计都会清空，且无法恢复。</string>
+    <string name="clear_log_confirm_title">清空调试日志？</string>
+    <string name="clear_log_confirm_message">只清空当前日志面板，不影响统计和规则。</string>
+
     <string name="stats_empty">还没有统计数据：打开一个有开屏广告的应用试试</string>
     <string name="stats_copied">统计已复制，可以直接粘贴</string>
     <string name="stats_reset">统计已清零</string>

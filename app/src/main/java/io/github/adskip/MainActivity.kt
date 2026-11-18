@@ -139,14 +139,24 @@ class MainActivity : AppCompatActivity() {
         binding.statusSettingsButton.setOnClickListener { openAccessibilitySettings() }
         binding.copyAdbButton.setOnClickListener { copyAdbCommand() }
         binding.clearLogButton.setOnClickListener {
-            DebugLog.clear()
-            renderLog()
+            confirm(
+                R.string.clear_log_confirm_title,
+                R.string.clear_log_confirm_message
+            ) {
+                DebugLog.clear()
+                renderLog()
+            }
         }
         binding.copyStatsButton.setOnClickListener { copyStats() }
         binding.resetStatsButton.setOnClickListener {
-            StatsStore.reset()
-            renderStats()
-            toast(getString(R.string.stats_reset))
+            confirm(
+                R.string.reset_stats_confirm_title,
+                R.string.reset_stats_confirm_message
+            ) {
+                StatsStore.reset()
+                renderStats()
+                toast(getString(R.string.stats_reset))
+            }
         }
         binding.toggleRulesButton.setOnClickListener {
             rulesExpanded = !rulesExpanded
@@ -633,6 +643,21 @@ class MainActivity : AppCompatActivity() {
 
     private fun toast(msg: String) {
         Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
+    }
+
+    /**
+     * 破坏性操作的二次确认（P1-3：清零统计 / 清空日志）。
+     *
+     * 这两个操作不可恢复，原来和普通按钮同权重，误触代价大；改成
+     * TextButton + 弱化色 + 弹窗确认，普通操作（复制/展开）不需要确认。
+     */
+    private fun confirm(title: Int, message: Int, action: () -> Unit) {
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+            .setTitle(title)
+            .setMessage(message)
+            .setNegativeButton(R.string.cancel, null)
+            .setPositiveButton(R.string.confirm) { _, _ -> action() }
+            .show()
     }
 
     private val createdAt = android.os.SystemClock.elapsedRealtime()
