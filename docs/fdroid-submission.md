@@ -11,7 +11,8 @@
 | 2 | **AuthorName** | 下面 yml 里暂填 `ccttrr123`（GitHub handle，不含个人信息）。想换就改这一行。 |
 | 3 | **截图** | ✅ **已备齐**（2026-10-17 03:50 初版；2026-11-18 随 UI 改版重截）。`fastlane/metadata/android/zh-CN/images/phoneScreenshots/` 下 1~3.png，各 1216×2640（主界面 / 统计 / 深色模式），**就在本仓库内** —— 位置正合政策要求（必须在应用自己的仓库，**不能**放进 fdroiddata）。<br>⚠️ 只做了 **zh-CN** 一套；政策不要求每个 locale 都有图，`en-US` 缺图时回退用 zh-CN 那套 ✓。想给 en-US 单独一套再补即可。 |
 
-另外**提交前必须做的一步**：把 yml 里的 `commit:` 占位符换成真实哈希 —— `git rev-list -n1 v0.2.0`。
+另外 yml 里的 `commit:` 已填入 tag `v0.2.0` 的提交哈希（`195c1ad711676a2b96e405d29a4a6b86034c5bfb`）；
+发新版时用 `git rev-list -n1 <tag>` 重新核对。
 
 ## 二、`metadata/io.github.adskip.yml` 全文
 
@@ -34,7 +35,7 @@ Repo: https://github.com/ccttrr123/adskip.git
 Builds:
   - versionName: '0.2.0'
     versionCode: 2
-    commit: <TAG_V0.2.0_的提交哈希>
+    commit: 195c1ad711676a2b96e405d29a4a6b86034c5bfb
     subdir: app
     gradle:
       - yes
