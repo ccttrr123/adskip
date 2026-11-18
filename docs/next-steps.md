@@ -273,6 +273,17 @@ F-Droid 材料与截图齐备 ✓、README 状态与截图更新 ✓、仓库已
     显示"服务未开启"= 设置被清了（权限回收/force-stop 那类）；显示"⚠ 服务已停止"= 设置还在但服务没工作
 - **logcat 缓冲区只留约 1.5~2 分钟**（ColorOS 自身日志刷得极快）→
   **排查一律用应用内的「调试日志」面板 + 「复制日志」按钮**，不要靠 logcat
+- **Android 17 / ColorOS 17：无障碍服务进程被杀 = 无障碍总开关被关掉（2026-11-18 实测）**：
+  最近任务点「清除」/划掉卡片 → 系统清理器（athena）直接杀进程（`o-kill`，不是崩溃）→
+  无障碍框架随后 `AccessibilityUserState: [serviceDisconnectedLocked] add mCrashedServices` +
+  `AccessibilityManagerService: updateAccessibilityEnabledSettingLocked:false` →
+  `accessibility_enabled 1→0`、`enabled_accessibility_services` 仍保留、`Bound services` 空、
+  `Crashed services` 里出现本服务。**用 `kill -9` 单独杀进程也能复现** → 这是 Android 17 对
+  “无障碍服务进程意外死亡”的框架策略，不是清理按钮独有，应用无法阻止进程被杀。
+  **崩溃标记只在系统内存里，`settings put` 清不掉**（实测：只写设置不会重绑）→
+  恢复必须走：设置里关/开开关、或「强行停止应用」后再开、或重启手机；
+  预防靠最近任务上锁 + 「允许完全后台行为」+ 自启动（详见 `usage-oppo-coloros.md`）。
+  应用内已加「无障碍被系统关掉了？」指引卡（可展开/复制）。
 - **ColorOS 安全中心会盯无障碍服务**：实机确认存在 `com.oplus.safecenter/.accessibility.provider.FraudRiskProvider`
   （authority `com.accessibility.FraudRiskProvider`，供系统内其它组件查"这个无障碍服务有没有诈骗风险"）
   和 `ACTION_ACCESSIBILITY_GLOBAL_CLOSE_GUIDE`（"全局关闭无障碍引导"弹窗）。

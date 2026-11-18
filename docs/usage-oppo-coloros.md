@@ -1,7 +1,7 @@
 # 在 OPPO / ColorOS 手机上使用（Reno 15 实测路径）
 
-本文针对 ColorOS 手机（Reno 15 中国版为 ColorOS 16 / Android 16）。
-核心难点有**两个，来源不同**，别混在一起：
+本文针对 ColorOS 手机（Reno 15 中国版为 ColorOS 16/17、Android 16/17）。
+核心难点有**两个来源不同的问题**，别混在一起；Android 17 还多了一条专有的“清理后台就关无障碍”行为（见下面第 0 节）：
 
 | 难点 | 来源 |
 |---|---|
@@ -13,6 +13,51 @@
 > 也就是说：**"权限被系统收回"这类问题各 ROM 都有**（小米的省电策略、vivo 的后台高耗电、华为的应用启动管理），
 > ColorOS 的特殊之处是它用一份**包名白名单**来豁免，而我们不在名单上。
 > 不要以为换个品牌的手机就不用做下面这些设置。
+
+---
+
+## ⚠️ 0. Android 17 / ColorOS 17 新行为：清理后台会关闭无障碍（2026-11-18 实测）
+
+Reno 15 升到 **Android 17 / ColorOS V17.0.0** 后，多了一个升级前没有的问题：
+**每次在最近任务里清掉「广告跳过」（划掉卡片或点「清除」），无障碍服务就被关掉，需要重新开启。**
+
+真机复现（日志逐条核对）：
+
+1. 最近任务点「清除」→ 系统清理器（oplus athena）直接杀掉应用进程（`o-kill`，**不是崩溃**）
+2. 系统无障碍框架随后：
+   - `AccessibilityUserState: [serviceDisconnectedLocked] add mCrashedServices`（把服务标记为“崩溃”）
+   - `AccessibilityManagerService: updateAccessibilityEnabledSettingLocked:false`（**关掉无障碍总开关**）
+3. 结果：`accessibility_enabled` 从 1 变成 0、服务名还在 `enabled_accessibility_services` 里、
+   `Bound services` 为空、`Crashed services` 里出现本服务。
+
+用 `kill -9` 单独杀进程也能复现同样结果 → 这是 **Android 17 对“无障碍服务进程意外死亡”的框架策略**，
+不是清理按钮独有的，也不是本应用的 bug；应用无法阻止系统杀进程。
+
+> 关键：这个“崩溃标记”在系统内存里，**只改设置值不会清除**（实测 `settings put` 无效），
+> 所以会出现“开关明明打开了、服务就是不工作 / 提示需要重新开启”。必须按下面顺序恢复。
+
+### 恢复（从上到下试）
+
+1. **设置 → 无障碍 → 广告跳过：把开关关掉再打开**（一般这一步就回来了）
+2. 若无效：**设置 → 应用 → 应用管理 → 广告跳过 → 强行停止**，再回无障碍打开开关
+3. 仍无效：**重启手机**后再打开
+4. 有电脑时可用 adb（实测有效）：
+
+```powershell
+adb shell am force-stop io.github.adskip
+adb shell settings put secure accessibility_enabled 1
+adb shell settings put secure enabled_accessibility_services io.github.adskip/io.github.adskip.service.AdSkipService
+```
+
+⚠️ 第一条 `force-stop` 不能省，只写 settings 清不掉崩溃标记。
+
+### 预防（系统升级后这些设置可能被重置，建议重新确认）
+
+- **最近任务里给「广告跳过」上锁**（长按卡片/下拉 → 锁定），之后不要划掉它、不要点「清除」。
+  这是最直接的一条：只要不杀进程，无障碍就不会被系统关掉
+- 设置 → 应用 → 应用管理 → 广告跳过 → 耗电管理：打开「**允许完全后台行为**」和「**允许自启动**」
+- 设置 → 电池 → 更多设置：关闭「**睡眠待机优化**」（如果夜间会断连）
+- 应用内已加「无障碍被系统关掉了？」卡片，展开就是这份步骤，可一键复制
 
 ---
 
@@ -165,11 +210,12 @@ powershell -File tools/install-and-enable.ps1 -Logcat
 
 ---
 
-## 出问题先查这三点
+## 出问题先查这四点
 
-1. **无障碍开关还在吗？** ColorOS 的「权限自动回收」经常把它关掉，这是"用着用着失效"的第一嫌疑
-2. **应用被后台清理了吗？** 检查自启动和耗电管理
-3. **重启手机后失效** → 回到第 1 点
+1. **最近清理过后台 / 刚升级系统？** Android 17 会把无障碍总开关关掉（见上面第 0 节）
+2. **无障碍开关还在吗？** ColorOS 的「权限自动回收」经常把它关掉，这是"用着用着失效"的第一嫌疑
+3. **应用被后台清理了吗？** 检查自启动和耗电管理
+4. **重启手机后失效** → 回到第 2 点
 
 ---
 
