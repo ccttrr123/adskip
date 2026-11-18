@@ -283,6 +283,9 @@ F-Droid 材料与截图齐备 ✓、README 状态与截图更新 ✓、仓库已
   **崩溃标记只在系统内存里，`settings put` 清不掉**（实测：只写设置不会重绑）→
   恢复必须走：设置里关/开开关、或「强行停止应用」后再开、或重启手机；
   预防靠最近任务上锁 + 「允许完全后台行为」+ 自启动（详见 `usage-oppo-coloros.md`）。
+  **开启「自启动」后实测：应用被重新拉起时系统会自动恢复无障碍**（`am start` 后
+  `accessibility_enabled` 自动回到 1、`Crashed services` 清空、服务重新 bound，无需手动关/开），
+  但「清除」后系统**不会立刻自动重启**（连续两轮测试未观察到），需要应用被重新拉起。
   应用内已加「无障碍被系统关掉了？」指引卡（可展开/复制）。
 - **ColorOS 安全中心会盯无障碍服务**：实机确认存在 `com.oplus.safecenter/.accessibility.provider.FraudRiskProvider`
   （authority `com.accessibility.FraudRiskProvider`，供系统内其它组件查"这个无障碍服务有没有诈骗风险"）
