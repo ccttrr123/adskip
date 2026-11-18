@@ -75,6 +75,9 @@ CurrentVersionCode: 2
 
 ## 三、英文 MR 说明全文（可直接粘贴）
 
+> 最新完整版（含逐步操作、yml 与 MR 描述）见 **`docs/fdroid-mr-v0.2.0.md`**；
+> 下面是同一份说明的存档，内容与之一致。
+
 **MR 标题**：`New App: io.github.adskip`
 
 ````markdown
@@ -215,7 +218,7 @@ The app's functionality is implemented, tested (176 unit tests) and verified on 
 
 ## 五、其他已核对的事实
 
-- fastlane 元数据两个 locale 均已齐备（title / short_description / full_description / changelogs/1）✓
+- fastlane 元数据两个 locale 均已齐备（title / short_description / full_description / changelogs/1、2）✓
   - short description 不以句点结尾 ✓（官方 Quick Start 要求）
 - 仓库里唯一的预编译二进制是 `gradle/wrapper/gradle-wrapper.jar` ✓（标准 wrapper，AdAway/NewPipe/Termux 都没为它写 scanignore，无需特殊处理，但已在 MaintainerNotes 里说明）
 - `build.gradle.kts`（Kotlin DSL）受 fdroidserver 支持 ✓（`checkupdates.py` 的 `dirs_with_manifest()` 把它列为 manifest 文件），所以 `UpdateCheckMode: Tags` 能正确读出 `app/build.gradle.kts` 里的版本号
