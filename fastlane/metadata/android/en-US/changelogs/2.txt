@@ -1,0 +1,8 @@
+v0.2.0
+
+- New: same-app landing page detection (phase 1: strong signals never count as a skip, so mis-taps are not reported as success)
+- Fix: occasional unreadable UI tree right after a tap (one retry after 400 ms; fewer "unknown" results, e.g. on YunYunDong)
+- Tuning: 志愿汇 blind-tap delay now 5.2 s so text detection wins; clicks/ad 1.33 → 0.92 over 12 device runs
+- New: guidance/recovery for Android 17 / ColorOS 17 closing accessibility when recents are cleared; enabling Autostart restores it automatically
+- UI: state-aware status card, empty stats state, merged Settings & Debug card, log severity colors, dynamic accent color
+- 20 rules (19 enabled); 176 unit tests

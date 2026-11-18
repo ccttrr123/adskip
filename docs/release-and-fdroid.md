@@ -8,7 +8,7 @@
 |---|---|
 | 开源许可证 | GPL-3.0（`LICENSE` ✓）|
 | 公开仓库 | https://github.com/ccttrr123/adskip ✓ |
-| 版本号 | `versionCode = 1` / `versionName = "0.1.0"` ✓ |
+| 版本号 | `versionCode = 2` / `versionName = "0.2.0"` ✓ |
 | 签名配置 | `app/build.gradle.kts` 从项目根的 `signing.properties` 读取 ✓ **缺文件时不报错、只是不签名** ✓（F-Droid 从源码构建靠的就是这个 ✓）|
 | 模板 | `signing.properties.example` ✓（占位符，无真密码 ✓）|
 | F-Droid 元数据 | `fastlane/metadata/android/{zh-CN,en-US}/` ✓（title / short / full / changelog ✓）|
@@ -62,7 +62,7 @@ notepad signing.properties
 ### ④ 打标签 + 推送（F-Droid 需要 tag 指向它要构建的提交）
 
 ```bash
-git tag -a v0.1.0 -m "首个版本 0.1.0"
+git tag -a v0.2.0 -m "v0.2.0"
 git push origin main --tags
 ```
 
@@ -87,6 +87,6 @@ git push origin main --tags
 
 - [ ] `git status` 干净 ✓ 且看不到 `signing.properties` / `*.jks` ✓
 - [ ] `apksigner verify` 通过 ✓
-- [ ] `aapt2 dump badging`：包名 `io.github.adskip`、versionName `0.1.0`、**uses-permission 一行都没有** ✓
-- [ ] tag `v0.1.0` 已推送 ✓
+- [ ] `aapt2 dump badging`：包名 `io.github.adskip`、versionName `0.2.0`、**无 INTERNET/危险权限**（只有 androidx 自动生成的签名级 `DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`）✓
+- [ ] tag `v0.2.0` 已推送 ✓
 - [ ] 在**干净环境**装一次 release APK（先卸载 debug 版 ✗）确认能正常启动 ✓

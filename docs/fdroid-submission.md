@@ -11,7 +11,7 @@
 | 2 | **AuthorName** | 下面 yml 里暂填 `ccttrr123`（GitHub handle，不含个人信息）。想换就改这一行。 |
 | 3 | **截图** | ✅ **已备齐**（2026-10-17 03:50 初版；2026-11-18 随 UI 改版重截）。`fastlane/metadata/android/zh-CN/images/phoneScreenshots/` 下 1~3.png，各 1216×2640（主界面 / 统计 / 深色模式），**就在本仓库内** —— 位置正合政策要求（必须在应用自己的仓库，**不能**放进 fdroiddata）。<br>⚠️ 只做了 **zh-CN** 一套；政策不要求每个 locale 都有图，`en-US` 缺图时回退用 zh-CN 那套 ✓。想给 en-US 单独一套再补即可。 |
 
-另外**提交前必须做的一步**：把 yml 里的 `commit:` 占位符换成真实哈希 —— `git rev-list -n1 v0.1.0`。
+另外**提交前必须做的一步**：把 yml 里的 `commit:` 占位符换成真实哈希 —— `git rev-list -n1 v0.2.0`。
 
 ## 二、`metadata/io.github.adskip.yml` 全文
 
@@ -32,9 +32,9 @@ RepoType: git
 Repo: https://github.com/ccttrr123/adskip.git
 
 Builds:
-  - versionName: '0.1.0'
-    versionCode: 1
-    commit: <TAG_V0.1.0_的提交哈希>
+  - versionName: '0.2.0'
+    versionCode: 2
+    commit: <TAG_V0.2.0_的提交哈希>
     subdir: app
     gradle:
       - yes
@@ -64,8 +64,8 @@ MaintainerNotes: |-
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags ^v\d+\.\d+\.\d+$
-CurrentVersion: '0.1.0'
-CurrentVersionCode: 1
+CurrentVersion: '0.2.0'
+CurrentVersionCode: 2
 ```
 
 **`subdir: app` 是必需的**，不能省：fdroiddata 官方 gradle 模板写着 "The `subdir` is the parent dir of `src/main` which is generally `app`"
@@ -155,7 +155,7 @@ AccessibilityService-based, in the repo since 2022, no AntiFeatures) and
 * `subdir: app` — the repository root is the Gradle root (`settings.gradle.kts`
   is at the root) and the application module is `app/`.
 * `gradle: yes` — no product flavours.
-* `commit:` uses the full commit hash of tag `v0.1.0`.
+* `commit:` uses the full commit hash of tag `v0.2.0`.
 * `AutoUpdateMode: Version` + `UpdateCheckMode: Tags ^v\d+\.\d+\.\d+$` — future
   releases are tagged `vX.Y.Z`, so auto-updates should work without manual
   metadata edits.
