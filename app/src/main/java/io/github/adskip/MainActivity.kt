@@ -50,6 +50,9 @@ class MainActivity : AppCompatActivity() {
     private var ruleSet: RuleSet = RuleSet()
     private var rulesExpanded = false
 
+    /** Android 17 / ColorOS 17 的恢复指引默认折叠，避免首屏过长 */
+    private var helpExpanded = false
+
     private val logListener: (String) -> Unit = {
         renderLog()
         renderStats()
@@ -149,7 +152,19 @@ class MainActivity : AppCompatActivity() {
             renderRules()
         }
 
+        // Android 17 / ColorOS 17：清理后台会杀掉无障碍服务进程，系统随后把无障碍总开关关掉。
+        // 这是系统行为，应用只能把"怎么恢复、怎么预防"清楚地放在界面上（真机证据见 docs/usage-oppo-coloros.md）。
+        binding.toggleHelpButton.setOnClickListener {
+            helpExpanded = !helpExpanded
+            renderHelp()
+        }
+        binding.copyHelpButton.setOnClickListener {
+            clipboard("adskip-help", getString(R.string.help_body))
+            toast(getString(R.string.help_copied))
+        }
+
         renderRules()
+        renderHelp()
         DebugLog.addListener(logListener)
         renderStatus()
         renderStats()
@@ -292,7 +307,7 @@ class MainActivity : AppCompatActivity() {
         binding.statusTitle.text = "⚠ 服务已停止"
         binding.statusDetail.setTextColor(headlineWarning)
         binding.statusDetail.text = (if (age >= 0) "最后活跃 ${HeartbeatPolicy.describeAge(age)}。" else "") +
-            "请到「无障碍」里把「广告跳过」关掉再打开"
+            "请到「无障碍」里把「广告跳过」关掉再打开（展开下方「无障碍被系统关掉了？」看完整步骤）"
     }
 
     private fun uptimeMs(): Long = android.os.SystemClock.elapsedRealtime() - createdAt
@@ -498,6 +513,20 @@ class MainActivity : AppCompatActivity() {
         renderStatus()
         renderStats()
         toast("改动会在你下次打开该应用时生效")
+    }
+
+    /**
+     * Android 17 / ColorOS 17 的"恢复与预防"指引展开/收起。
+     *
+     * 为什么单独做成一张卡：这两个版本清理后台会把无障碍服务进程杀掉，系统随后把无障碍
+     * 总开关关掉（并标记服务"崩溃"），表现就是"每次清理后台后都要重新开启"。
+     * 这是系统行为，应用无法阻止，只能把恢复/预防步骤放在最显眼的位置。
+     * 真机证据见 docs/usage-oppo-coloros.md。
+     */
+    private fun renderHelp() {
+        binding.toggleHelpButton.setText(if (helpExpanded) R.string.collapse else R.string.expand)
+        binding.helpHint.visibility = if (helpExpanded) View.GONE else View.VISIBLE
+        binding.helpBody.visibility = if (helpExpanded) View.VISIBLE else View.GONE
     }
 
     private fun renderLog() {
