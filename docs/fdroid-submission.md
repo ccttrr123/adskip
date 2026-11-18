@@ -9,7 +9,7 @@
 |---|---|---|
 | 1 | **Application ID 改不改** | 政策原文用的是 **`It is advised to`**（建议）而不是 `must` —— 同页"唯一性"那条才用 `must`。所以 `io.github.adskip` 与账号 `ccttrr123` 不一致只是**建议性偏差**，不构成自动拒绝。**建议保持不变**（改 ID 会让已安装的应用变成"另一个应用"，统计与无障碍设置都要重来）。 |
 | 2 | **AuthorName** | 下面 yml 里暂填 `ccttrr123`（GitHub handle，不含个人信息）。想换就改这一行。 |
-| 3 | **截图** | ✅ **已备齐**（2026-10-17 03:50 补，见提交 `6990547`）。`fastlane/metadata/android/zh-CN/images/phoneScreenshots/` 下 1~3.png，各 1216×2640（主界面 / 统计 / 深色模式），**就在本仓库内** —— 位置正合政策要求（必须在应用自己的仓库，**不能**放进 fdroiddata）。<br>⚠️ 只做了 **zh-CN** 一套；政策不要求每个 locale 都有图，`en-US` 缺图时回退用 zh-CN 那套 ✓。想给 en-US 单独一套再补即可。 |
+| 3 | **截图** | ✅ **已备齐**（2026-10-17 03:50 初版；2026-11-18 随 UI 改版重截）。`fastlane/metadata/android/zh-CN/images/phoneScreenshots/` 下 1~3.png，各 1216×2640（主界面 / 统计 / 深色模式），**就在本仓库内** —— 位置正合政策要求（必须在应用自己的仓库，**不能**放进 fdroiddata）。<br>⚠️ 只做了 **zh-CN** 一套；政策不要求每个 locale 都有图，`en-US` 缺图时回退用 zh-CN 那套 ✓。想给 en-US 单独一套再补即可。 |
 
 另外**提交前必须做的一步**：把 yml 里的 `commit:` 占位符换成真实哈希 —— `git rev-list -n1 v0.1.0`。
 
@@ -169,11 +169,12 @@ AccessibilityService-based, in the repo since 2022, no AntiFeatures) and
 2. Whether the maintainers would like an explicit note about the accessibility
    service in the app description text (F-Droid controls the description
    through `fastlane/` upstream, so I can amend it there).
-3. Screenshots are not yet in the upstream `fastlane/.../images/` directory; I
-   will add them upstream (not in this repo) in the next release.
+3. Screenshots are included in the upstream `fastlane/metadata/android/zh-CN/images/phoneScreenshots/`
+   directory (1.png–3.png, 1216×2640, refreshed 2026-11-18 with the current UI); en-US can fall back
+   to the zh-CN set.
 
 <!-- 可选：关于"活跃开发 3 个月"门槛的主动说明。要用就取消注释并粘进 MR（见第四节）：
-The app's functionality is implemented, tested (135 unit tests) and verified on 15 real apps. The upstream git history is short — the code was written over roughly two days of work — so if the "actively developed for at least 3 months" criterion applies strictly, I would appreciate guidance on whether to wait, or whether the criterion is waived in this case.
+The app's functionality is implemented, tested (176 unit tests) and verified on 15 real apps. The upstream git history is short — the code was written over roughly two days of work — so if the "actively developed for at least 3 months" criterion applies strictly, I would appreciate guidance on whether to wait, or whether the criterion is waived in this case.
 -->
 ````
 
