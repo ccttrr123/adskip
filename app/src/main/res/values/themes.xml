@@ -22,4 +22,23 @@
         <item name="android:statusBarColor">#F7F8FB</item>
         <item name="android:navigationBarColor">#F7F8FB</item>
     </style>
+
+    <!--
+        P2-4 自动强调色：Android 12+ 用动态取色（跟随系统壁纸/主题）替换按钮、选中态等强调色；
+        但动态色会把表面色一起改掉。这个 overlay 在动态色之后应用，把中性表面色盖回去 ——
+        保留原来的"中性冷灰底"设计，同时让强调色自动跟随系统（旧系统自动保持默认紫，无需配置）。
+        深色对应值在 values-night/themes.xml。
+    -->
+    <style name="ThemeOverlay.AdSkip.NeutralSurfaces" parent="">
+        <item name="colorSurface">#F7F8FB</item>
+        <item name="colorSurfaceContainerLowest">#FFFFFF</item>
+        <item name="colorSurfaceContainerLow">#F2F4F8</item>
+        <item name="colorSurfaceContainer">#ECEEF3</item>
+        <item name="colorSurfaceContainerHigh">#E6E9EF</item>
+        <item name="colorOnSurface">#1A1C1E</item>
+        <item name="colorOnSurfaceVariant">#44474C</item>
+        <item name="android:windowBackground">#F7F8FB</item>
+        <item name="android:statusBarColor">#F7F8FB</item>
+        <item name="android:navigationBarColor">#F7F8FB</item>
+    </style>
 </resources>

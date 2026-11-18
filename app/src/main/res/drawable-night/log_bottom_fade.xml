@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 深色模式下的日志区底部渐隐（与 colorSurfaceContainerLow=#1A1C1F 一致） -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <gradient
+        android:angle="90"
+        android:endColor="#FF1A1C1F"
+        android:startColor="#001A1C1F"
+        android:type="linear" />
+</shape>

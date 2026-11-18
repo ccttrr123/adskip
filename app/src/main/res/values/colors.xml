@@ -7,4 +7,7 @@
         刻意不用 ?attr/colorOutlineVariant：实测它在这个主题下解析成 0，线会看不见。
     -->
     <color name="stats_divider">#331A1C1E</color>
+
+    <!-- 调试日志里 W（警告）级别的颜色；深色由 values-night/colors.xml 覆盖 -->
+    <color name="log_warning">#B26A00</color>
 </resources>

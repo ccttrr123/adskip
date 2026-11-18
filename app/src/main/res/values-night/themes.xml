@@ -13,4 +13,18 @@
         <item name="android:statusBarColor">#121316</item>
         <item name="android:navigationBarColor">#121316</item>
     </style>
+
+    <!-- P2-4：动态强调色之后把深色中性表面色盖回去（同 values/themes.xml 的说明） -->
+    <style name="ThemeOverlay.AdSkip.NeutralSurfaces" parent="">
+        <item name="colorSurface">#121316</item>
+        <item name="colorSurfaceContainerLowest">#0D0E11</item>
+        <item name="colorSurfaceContainerLow">#1A1C1F</item>
+        <item name="colorSurfaceContainer">#1E2023</item>
+        <item name="colorSurfaceContainerHigh">#24262A</item>
+        <item name="colorOnSurface">#E3E2E6</item>
+        <item name="colorOnSurfaceVariant">#C4C6CA</item>
+        <item name="android:windowBackground">#121316</item>
+        <item name="android:statusBarColor">#121316</item>
+        <item name="android:navigationBarColor">#121316</item>
+    </style>
 </resources>

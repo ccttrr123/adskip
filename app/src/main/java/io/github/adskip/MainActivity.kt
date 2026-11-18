@@ -14,10 +14,14 @@ import androidx.core.view.WindowInsetsCompat
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.content.res.Configuration
+import android.text.Spannable
+import android.text.SpannableStringBuilder
+import android.text.style.ForegroundColorSpan
 import android.util.TypedValue
 import android.view.Gravity
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import io.github.adskip.databinding.ActivityMainBinding
 import io.github.adskip.databinding.ItemRuleBinding
 import io.github.adskip.engine.AppStat
@@ -59,6 +63,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // P2-4 自动强调色：Android 12+ 跟随系统壁纸/主题取强调色；旧系统自动保持默认紫。
+        // 动态色会连表面色一起改，所以先把中性的表面色 overlay 再盖回去（见 themes.xml 说明）。
+        runCatching {
+            com.google.android.material.color.DynamicColors.applyToActivityIfAvailable(this)
+            theme.applyStyle(R.style.ThemeOverlay_AdSkip_NeutralSurfaces, true)
+        }
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -233,7 +243,6 @@ class MainActivity : AppCompatActivity() {
     private fun setStatusActions(working: Boolean) {
         binding.statusSettingsButton.visibility = if (working) View.VISIBLE else View.GONE
         binding.openSettingsButton.visibility = if (working) View.GONE else View.VISIBLE
-        binding.copyAdbButton.visibility = if (working) View.GONE else View.VISIBLE
     }
 
     /**
@@ -511,7 +520,8 @@ class MainActivity : AppCompatActivity() {
         val visible = if (rulesExpanded) View.VISIBLE else View.GONE
         binding.rulesContainer.visibility = visible
         binding.rulesHint.visibility = visible
-        binding.rulesTitle.text = getString(R.string.section_rules) + "（${ruleSet.rules.size} 条）"
+        binding.rulesTitle.text = "${getString(R.string.section_rules)} ${ruleSet.rules.size} 条" +
+            " · 启用 ${ruleSet.rules.count { it.enabled }}"
 
         if (!rulesExpanded) return
         if (binding.rulesContainer.childCount > 0) return
@@ -561,12 +571,40 @@ class MainActivity : AppCompatActivity() {
         binding.helpBody.visibility = if (helpExpanded) View.VISIBLE else View.GONE
     }
 
+    /**
+     * 调试日志渲染（P2-3）。
+     *
+     * 按行级别给 W/E 上色（I 用默认文字色）：一屏几十行时靠颜色比靠读 " W " 快得多。
+     * 行格式是 DebugLog 固定输出 "HH:mm:ss.SSS I/W/E message"，级别字符固定在 index 13。
+     */
     private fun renderLog() {
         val lines = DebugLog.snapshot()
-        binding.logText.text = if (lines.isEmpty()) {
-            "(暂无日志。开启服务后打开一个有开屏广告的应用，这里会显示判定过程)"
+        if (lines.isEmpty()) {
+            binding.logText.text = "(暂无日志。开启服务后打开一个有开屏广告的应用，这里会显示判定过程)"
         } else {
-            lines.takeLast(MAX_LOG_LINES).joinToString("\n")
+            val warning = ContextCompat.getColor(this, R.color.log_warning)
+            val error = themeColor(com.google.android.material.R.attr.colorError, 0xFFD32F2F.toInt())
+            val styled = SpannableStringBuilder()
+            lines.takeLast(MAX_LOG_LINES).forEach { line ->
+                val start = styled.length
+                styled.append(line)
+                val level = line.getOrNull(13)
+                val color = when (level) {
+                    'W' -> warning
+                    'E' -> error
+                    else -> 0
+                }
+                if (color != 0) {
+                    styled.setSpan(
+                        ForegroundColorSpan(color),
+                        start,
+                        start + line.length,
+                        Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+                    )
+                }
+                styled.append('\n')
+            }
+            binding.logText.text = styled
         }
         // 新日志追加后滚到底部，否则看到的永远是最早那几行
         binding.logScroll.post { binding.logScroll.fullScroll(View.FOCUS_DOWN) }
