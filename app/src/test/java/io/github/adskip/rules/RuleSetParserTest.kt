@@ -189,10 +189,11 @@ class RuleSetParserTest {
         assertFalse("示例规则必须默认禁用", demo!!.enabled)
         assertTrue(demo.strategies.any { it.type == Strategy.TAP_RATIO })
 
-        // 志愿汇 是唯一配置了"盲点最小出手时间"的应用（2026-11-10 真机：按钮约 2 秒后才可点）。
-        // 这条防止规则库被误改/回退后盲点又在按钮渲染前出手（会点进广告、打开浏览器）。
+        // 志愿汇 是唯一配置了"盲点最小出手时间"的应用。
+        // 2026-11-18 M2 实验：文本命中「5s | 跳过」的时间点集中在 ~1.0~1.3s，个别变体到 ~3.7-3.8s；
+        // 2400ms 时盲点会先出手、点空甚至点到广告内容（打开应用市场），所以提到 3800ms 等文本先赢。
         val zzw = ruleSet.rules.first { it.pkg == "com.zzw.october" }
-        assertEquals(2400L, zzw.blindMinAgeMs)
+        assertEquals(5200L, zzw.blindMinAgeMs)
 
         // 两个盲点的顺序也是真机数据定的：这几天有效的都是右侧点（0.906 在前），
         // 左侧几乎总是点空、只能当第 2 次兜底。顺序即轮换顺序，被改回去会白点一次。

@@ -18,6 +18,7 @@ import io.github.adskip.engine.RuleEngine
 import io.github.adskip.engine.SkipTextMatcher
 import io.github.adskip.engine.UiNode
 import io.github.adskip.engine.UiSnapshot
+import io.github.adskip.engine.VerifyRetryPolicy
 import io.github.adskip.engine.NeverTouch
 import io.github.adskip.rules.RuleRepository
 import io.github.adskip.util.DebugLog
@@ -662,7 +663,8 @@ class AdSkipService : AccessibilityService() {
         targetPkg: String,
         reason: String,
         node: UiNode?,
-        blindAtTap: BlindObservation? = null
+        blindAtTap: BlindObservation? = null,
+        retry: Int = 0
     ) {
         if (awaitingVerifyFor == targetPkg) awaitingVerifyFor = null
 
@@ -748,7 +750,25 @@ class AdSkipService : AccessibilityService() {
         // 校验前先确认界面仍属于目标应用：否则读到的可能是**别的应用/我们自己**的界面，
         // 于是"跳过按钮不见了"被当成跳掉了 → 记一次假成功。
         // 真机事故（2026-11-10）：切到本应用界面时，校验读到了 statusTitle/logText。
+        // 真机依据（2026-11-18 M2 覆盖矩阵，云运动 2/2）：点击后正好赶上窗口切换，
+        // 1000ms 时 rootInActiveWindow 为空，旧逻辑直接"不记成功也不记失败"。
+        // 这种空读通常是瞬时的，给一次 400ms 后的重试就能拿到界面并给出明确结论。
         val verifyRoot = rootInActiveWindow
+        if (verifyRoot == null &&
+            VerifyRetryPolicy.shouldRetry(rootReadable = false, retryCount = retry)
+        ) {
+            awaitingVerifyFor = targetPkg // 重试期间继续锁住，避免事件路径插进来连点
+            pendingVerify?.let { handler.removeCallbacks(it) }
+            val retryRunnable = Runnable {
+                verifyAfterTap(targetPkg, reason, node, blindAtTap, retry + 1)
+            }
+            pendingVerify = retryRunnable
+            handler.postDelayed(retryRunnable, VERIFY_RETRY_DELAY_MS)
+            DebugLog.i(
+                "[$targetPkg] 校验时读不到界面内容，${VERIFY_RETRY_DELAY_MS}ms 后重试一次（$reason）"
+            )
+            return
+        }
         val verifyPkg = verifyRoot?.packageName?.toString()
         if (verifyRoot == null || (verifyPkg != null && verifyPkg != targetPkg)) {
             DebugLog.i(
@@ -924,6 +944,14 @@ class AdSkipService : AccessibilityService() {
         const val LOG_DEDUP_MS = 10_000L
 
         const val VERIFY_DELAY_MS = 700L
+
+        /**
+         * 文本路径校验时读不到界面（root 为空）的一次重试延迟。
+         *
+         * 云运动实测（2026-11-18）：点击后 1000ms 正好赶上窗口切换，rootInActiveWindow 为空；
+         * 400ms 后重读通常就能拿到界面。只重试一次，避免把校验拖到用户已经看到下一步界面。
+         */
+        const val VERIFY_RETRY_DELAY_MS = 400L
 
         /**
          * 盲点（[Decision.TapPoint]）专用的校验延迟。
