@@ -136,6 +136,7 @@ class MainActivity : AppCompatActivity() {
         ruleSet = RuleRepository(this).load()
 
         binding.openSettingsButton.setOnClickListener { openAccessibilitySettings() }
+        binding.statusSettingsButton.setOnClickListener { openAccessibilitySettings() }
         binding.copyAdbButton.setOnClickListener { copyAdbCommand() }
         binding.clearLogButton.setOnClickListener {
             DebugLog.clear()
@@ -207,7 +208,22 @@ class MainActivity : AppCompatActivity() {
             "开启后才会开始工作"
         }
         binding.hintText.visibility = if (enabled) View.GONE else View.VISIBLE
+        setStatusActions(working = enabled)
         renderHeartbeat()
+    }
+
+    /**
+     * 状态卡操作区按服务状态切换（P1-1）。
+     *
+     * - 工作态：不再让「打开无障碍设置」和「复制 ADB 授权命令」占据主视觉，
+     *   只留标题右侧一个小「设置」；
+     * - 未开启 / 已停止：这时用户才真的需要「打开无障碍设置」，主按钮和 ADB 命令都显示。
+     *   （ADB 命令本来就只在"装/救"时用得上，工作态挂着它只会增加噪音。）
+     */
+    private fun setStatusActions(working: Boolean) {
+        binding.statusSettingsButton.visibility = if (working) View.VISIBLE else View.GONE
+        binding.openSettingsButton.visibility = if (working) View.GONE else View.VISIBLE
+        binding.copyAdbButton.visibility = if (working) View.GONE else View.VISIBLE
     }
 
     /**
@@ -303,6 +319,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun showServiceStopped() {
         val age = ServiceHeartbeat.ageMs()
+        setStatusActions(working = false)
         binding.statusTitle.setTextColor(headlineWarning)
         binding.statusTitle.text = "⚠ 服务已停止"
         binding.statusDetail.setTextColor(headlineWarning)
@@ -349,9 +366,14 @@ class MainActivity : AppCompatActivity() {
                     .thenBy { displayName(it.key) }
             )
 
-        binding.statsEmptyText.visibility = if (rows.isEmpty()) View.VISIBLE else View.GONE
+        val empty = rows.isEmpty()
+        binding.statsEmptyText.visibility = if (empty) View.VISIBLE else View.GONE
+        // 空态时「复制统计 / 清零」没有意义：隐藏按钮，只留引导文案（P1-2）
+        binding.copyStatsButton.visibility = if (empty) View.GONE else View.VISIBLE
+        binding.resetStatsButton.visibility = if (empty) View.GONE else View.VISIBLE
+        binding.statsTable.visibility = if (empty) View.GONE else View.VISIBLE
         binding.statsTable.removeAllViews()
-        if (rows.isEmpty()) return
+        if (empty) return
 
         val table = binding.statsTable
         addStatsRow(

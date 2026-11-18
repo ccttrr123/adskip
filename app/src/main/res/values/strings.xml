@@ -5,6 +5,7 @@
     <string name="service_description">在你打开其他应用时，自动点击开屏广告上本来就存在的"跳过/关闭"按钮。本服务只读取界面上的文字与位置，所有统计只存在本机，不上传任何内容。</string>
 
     <string name="open_settings">打开无障碍设置</string>
+    <string name="status_settings">设置</string>
     <string name="copy_adb">复制 ADB 授权命令</string>
     <string name="clear_log">清空</string>
     <string name="expand">展开</string>
